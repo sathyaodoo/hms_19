@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Follow-up form view -->
+    <record id="view_hospital_followup_form" model="ir.ui.view">
+        <field name="name">hospital.followup.form</field>
+        <field name="model">hospital.followup</field>
+        <field name="arch" type="xml">
+            <form string="Patient Follow-Up">
+                <header>
+                    <button name="action_mark_attended" type="object"
+                            string="Mark Attended" class="btn btn-success"
+                            invisible="status != 'pending'"/>
+                    <button name="action_mark_missed" type="object"
+                            string="Mark Missed" class="btn btn-warning"
+                            invisible="status != 'pending'"/>
+                    <field name="status" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="patient_id"/>
+                            <field name="followup_date"/>
+                            <field name="advised_by"/>
+                        </group>
+                        <group>
+                            <field name="source_op_id"/>
+                            <field name="source_ip_id"/>
+                            <field name="rescheduled_to"
+                                   invisible="status != 'rescheduled'"/>
+                        </group>
+                    </group>
+                    <field name="reason" placeholder="Follow-up instructions..."/>
+                    <field name="notes" placeholder="Visit notes..."/>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- Follow-up list view -->
+    <record id="view_hospital_followup_list" model="ir.ui.view">
+        <field name="name">hospital.followup.list</field>
+        <field name="model">hospital.followup</field>
+        <field name="arch" type="xml">
+            <list decoration-danger="status == 'missed'"
+                  decoration-success="status == 'attended'"
+                  decoration-warning="status == 'rescheduled'">
+                <field name="followup_date"/>
+                <field name="patient_id"/>
+                <field name="reason" string="Instructions"/>
+                <field name="advised_by"/>
+                <field name="status" widget="badge"/>
+            </list>
+        </field>
+    </record>
+</odoo>

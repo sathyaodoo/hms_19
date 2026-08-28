@@ -1,0 +1,314 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+
+
+    <!-- ══ ACTIONS FIRST — menus reference these, so they must be defined before menuitems ══ -->
+
+    <record id="action_hospital_casualty_form" model="ir.actions.act_window">
+        <field name="name">Casualty Registration</field>
+        <field name="res_model">hospital.casualty</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <record id="action_casualty_duty_roster" model="ir.actions.act_window">
+        <field name="name">Intern Casualty Duty Roster</field>
+        <field name="res_model">casualty.duty.roster</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'list', 'view_id': ref('view_duty_roster_list')}),
+            (0, 0, {'view_mode': 'form', 'view_id': ref('view_duty_roster_form')})]"/>
+    </record>
+
+    <record id="action_procedure_prescription" model="ir.actions.act_window">
+        <field name="name">Procedure Prescriptions</field>
+        <field name="res_model">hospital.procedure.prescription</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'list', 'view_id': ref('view_procedure_prescription_list')}),
+            (0, 0, {'view_mode': 'form', 'view_id': ref('view_procedure_prescription_form')})]"/>
+    </record>
+
+    <record id="action_hospital_diet_plan" model="ir.actions.act_window">
+        <field name="name">Diet Plans</field>
+        <field name="res_model">hospital.diet.plan</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <record id="action_hospital_intern" model="ir.actions.act_window">
+        <field name="name">Intern Profiles</field>
+        <field name="res_model">hospital.intern</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'list', 'view_id': ref('view_intern_list')}),
+            (0, 0, {'view_mode': 'form', 'view_id': ref('view_intern_form')})]"/>
+    </record>
+
+    <record id="action_hospital_case_log" model="ir.actions.act_window">
+        <field name="name">Clinical Case Logs</field>
+        <field name="res_model">hospital.case.log</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_ids" eval="[(5, 0, 0),
+       		(0, 0, {'view_mode': 'list', 'view_id': ref('view_case_log_list')}),
+            (0, 0, {'view_mode': 'form', 'view_id': ref('view_case_log_form')})]"/>
+    </record>
+
+    <record id="action_intern_review" model="ir.actions.act_window">
+        <field name="name">Monthly Reviews</field>
+        <field name="res_model">hospital.intern.review</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <record id="action_fee_master" model="ir.actions.act_window">
+        <field name="name">Consultation Fee Master</field>
+        <field name="res_model">hospital.fee.master</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'list', 'view_id': ref('view_fee_master_list')}),
+            (0, 0, {'view_mode': 'form', 'view_id': ref('view_fee_master_form')})]"/>
+    </record>
+
+    <record id="action_santhigiri_allergy" model="ir.actions.act_window">
+        <field name="name">Allergy Master</field>
+        <field name="res_model">santhigiri.allergy</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'list', 'view_id': ref('view_allergy_list')})]"/>
+    </record>
+
+    <record id="action_purchase_approval_level" model="ir.actions.act_window">
+        <field name="name">Purchase Approval Levels</field>
+        <field name="res_model">hospital.purchase.approval.level</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- ══ MENUS — defined after actions ══ -->
+
+    <!-- Casualty -->
+    <menuitem id="menu_casualty_root" name="Casualty"
+              parent="base_hospital_management.hospital_menu_root"
+              sequence="25"/>
+    <menuitem id="menu_casualty_registration" name="Casualty Registration"
+              parent="menu_casualty_root"
+              action="action_hospital_casualty_form"
+              sequence="10"/>
+    <menuitem id="menu_casualty_duty_roster" name="Intern Duty Roster"
+              parent="menu_casualty_root"
+              action="action_casualty_duty_roster"
+              sequence="20"/>
+
+    <!-- Daily Procedures -->
+    <menuitem id="menu_procedure_root" name="Daily Procedures"
+              parent="base_hospital_management.hospital_menu_root"
+              sequence="30"
+              groups="base_hospital_management.base_hospital_management_group_manager,base_hospital_management.base_hospital_management_group_doctor,santhigiri_hms.group_rmo,santhigiri_hms.group_therapist,base_hospital_management.base_hospital_management_group_receptionist,base_hospital_management.base_hospital_management_group_nurse"/>
+    <menuitem id="menu_procedure_prescription" name="Procedure Prescriptions"
+              parent="menu_procedure_root"
+              action="action_procedure_prescription"
+              sequence="10"
+              groups="base_hospital_management.base_hospital_management_group_manager,base_hospital_management.base_hospital_management_group_doctor,santhigiri_hms.group_rmo,santhigiri_hms.group_therapist,base_hospital_management.base_hospital_management_group_receptionist,base_hospital_management.base_hospital_management_group_nurse"/>
+
+    <!-- Food Management -->
+    <menuitem id="menu_food_root" name="Food Management"
+              parent="base_hospital_management.hospital_menu_root"
+              sequence="50"/>
+    <menuitem id="menu_diet_plan" name="Diet Plans"
+              parent="menu_food_root"
+              action="action_hospital_diet_plan"
+              sequence="10"/>
+
+    <!-- Medical Camps -->
+    <menuitem id="menu_camp_root" name="Medical Camps"
+              parent="base_hospital_management.hospital_menu_root"
+              sequence="60"/>
+    <menuitem id="menu_camp" name="Camp Management"
+              parent="menu_camp_root"
+              action="action_hospital_camp"
+              sequence="10"/>
+
+    <!-- ══ Internship — Standalone Menu (no Hospital Management parent) ════ -->
+    <record id="action_my_attendance" model="ir.actions.server">
+        <field name="name">My Attendance (Check In / Out)</field>
+        <field name="model_id" ref="santhigiri_hms.model_hospital_intern"/>
+        <field name="state">code</field>
+        <field name="code">action = model.action_my_attendance()</field>
+    </record>
+
+    <menuitem id="menu_internship_root"
+              name="Internship"
+              sequence="100"
+              groups="santhigiri_hms.group_intern,base_hospital_management.base_hospital_management_group_doctor,base_hospital_management.base_hospital_management_group_manager,santhigiri_hms.group_rmo"/>
+
+    <menuitem id="menu_my_attendance"
+              name="⏱ My Attendance"
+              parent="menu_internship_root"
+              action="action_my_attendance"
+              sequence="20"
+              groups="santhigiri_hms.group_intern"/>
+
+    <menuitem id="menu_intern_case_log"
+              name="Case Logs"
+              parent="menu_internship_root"
+              action="action_hospital_case_log"
+              sequence="10"
+              groups="santhigiri_hms.group_intern,base_hospital_management.base_hospital_management_group_doctor,base_hospital_management.base_hospital_management_group_manager,santhigiri_hms.group_rmo"/>
+
+    <menuitem id="menu_intern_master"
+              name="Intern Profiles"
+              parent="menu_internship_root"
+              action="action_hospital_intern"
+              sequence="1"
+              groups="base_hospital_management.base_hospital_management_group_doctor,base_hospital_management.base_hospital_management_group_manager,santhigiri_hms.group_rmo"/>
+
+    <menuitem id="menu_intern_review"
+              name="Monthly Reviews"
+              parent="menu_internship_root"
+              action="action_intern_review"
+              sequence="30"
+              groups="base_hospital_management.base_hospital_management_group_doctor,base_hospital_management.base_hospital_management_group_manager,santhigiri_hms.group_rmo"/>
+ <record id="action_hospital_followup" model="ir.actions.act_window">
+        <field name="name">Patient Follow-Ups</field>
+        <field name="res_model">hospital.followup</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('status','=','pending')]</field>
+        <field name="context">{'search_default_status': 'pending'}</field>
+    </record>
+
+    <record id="action_all_followups" model="ir.actions.act_window">
+        <field name="name">All Follow-Ups</field>
+        <field name="res_model">hospital.followup</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem id="menu_followup_root"
+              name="Follow-Ups"
+              parent="base_hospital_management.hospital_menu_root"
+              sequence="35"
+              groups="base_hospital_management.base_hospital_management_group_manager,base_hospital_management.base_hospital_management_group_doctor,base_hospital_management.base_hospital_management_group_receptionist,santhigiri_hms.group_rmo"/>
+
+    <menuitem id="menu_followup_due"
+              name="Due Today / Pending"
+              parent="menu_followup_root"
+              action="action_hospital_followup"
+              sequence="10"
+              groups="base_hospital_management.base_hospital_management_group_manager,base_hospital_management.base_hospital_management_group_doctor,base_hospital_management.base_hospital_management_group_receptionist,santhigiri_hms.group_rmo"/>
+
+    <menuitem id="menu_followup_all"
+              name="All Follow-Ups"
+              parent="menu_followup_root"
+              action="action_all_followups"
+              sequence="20"
+              groups="base_hospital_management.base_hospital_management_group_manager,base_hospital_management.base_hospital_management_group_doctor,base_hospital_management.base_hospital_management_group_receptionist,santhigiri_hms.group_rmo"/>
+    <!-- Configuration -->
+    <menuitem id="menu_config_fee_master" name="Consultation Fee Master"
+              parent="base_hospital_management.hospital_menu_configuration"
+              action="action_fee_master"
+              sequence="10"/>
+    <menuitem id="menu_config_allergy" name="Allergy Master"
+              parent="base_hospital_management.hospital_menu_configuration"
+              action="action_santhigiri_allergy"
+              sequence="20"/>
+    <menuitem id="menu_config_purchase_levels" name="Purchase Approval Levels"
+              parent="base_hospital_management.hospital_menu_configuration"
+              action="action_purchase_approval_level"
+              sequence="30"/>
+
+
+    <!-- ══ Housekeeping Menu — for Housekeeping Staff ══════════════════════ -->
+    <record id="action_rooms_cleaning_queue" model="ir.actions.act_window">
+        <field name="name">Room Cleaning Queue</field>
+        <field name="res_model">patient.room</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('state', 'in', ['cleaning', 'not', 'avail'])]</field>
+    </record>
+
+    <record id="action_all_rooms" model="ir.actions.act_window">
+        <field name="name">All Rooms</field>
+        <field name="res_model">patient.room</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem id="menu_housekeeping_root"
+              name="Housekeeping"
+              parent="base_hospital_management.hospital_menu_root"
+              sequence="55"
+              groups="santhigiri_hms.group_housekeeping,santhigiri_hms.group_office_superintendent,base_hospital_management.base_hospital_management_group_manager"/>
+
+    <menuitem id="menu_housekeeping_cleaning_queue"
+              name="Rooms to Clean"
+              parent="menu_housekeeping_root"
+              action="action_rooms_cleaning_queue"
+              sequence="10"
+              groups="santhigiri_hms.group_housekeeping,santhigiri_hms.group_office_superintendent,base_hospital_management.base_hospital_management_group_manager"/>
+
+    <menuitem id="menu_housekeeping_all_rooms"
+              name="All Rooms"
+              parent="menu_housekeeping_root"
+              action="action_all_rooms"
+              sequence="20"
+              groups="santhigiri_hms.group_office_superintendent,base_hospital_management.base_hospital_management_group_manager"/>
+
+
+    <!-- ══ Pharmacy Orders — for Pharmacist to see pending IP/OP orders ════════ -->
+    <record id="action_ip_pharmacy_orders" model="ir.actions.act_window">
+        <field name="name">IP Medication Orders (Pending Dispensing)</field>
+        <field name="res_model">sale.order</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('dispensing_category','=','patient_medication'),('state','=','sale')]</field>
+        <field name="context">{'search_default_dispensing_category': 'patient_medication'}</field>
+    </record>
+
+    <record id="action_op_pharmacy_orders" model="ir.actions.act_window">
+        <field name="name">OP Dispensing Orders</field>
+        <field name="res_model">sale.order</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[
+            ('dispensing_category','=','op_dispensing'),
+            ('state','in',['sale','done']),
+            ('partner_id.patient_seq','!=',False),
+            ('partner_id.patient_seq','!=','New'),
+            ('partner_id.patient_seq','!=','Employee'),
+            ('partner_id.patient_seq','!=','User')
+        ]</field>
+    </record>
+
+    <record id="action_all_pharmacy_orders" model="ir.actions.act_window">
+        <field name="name">All Pharmacy Orders</field>
+        <field name="res_model">sale.order</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[
+            ('dispensing_category','!=',False),
+            ('partner_id.patient_seq','!=',False),
+            ('partner_id.patient_seq','not in',['New','Employee','User'])
+        ]</field>
+    </record>
+
+    <!-- Pharmacy Orders menu — visible to Pharmacist -->
+    <menuitem id="menu_pharmacy_orders_root"
+              name="Pharmacy Orders"
+              parent="base_hospital_management.hospital_menu_root"
+              sequence="45"
+              groups="base_hospital_management.base_hospital_management_group_pharmacist,base_hospital_management.base_hospital_management_group_manager"/>
+
+    <menuitem id="menu_ip_pharmacy_orders"
+              name="🏥 IP Medication (Pending)"
+              parent="menu_pharmacy_orders_root"
+              action="action_ip_pharmacy_orders"
+              sequence="10"
+              groups="base_hospital_management.base_hospital_management_group_pharmacist,base_hospital_management.base_hospital_management_group_manager"/>
+
+    <menuitem id="menu_op_pharmacy_orders"
+              name="🏃 OP Dispensing"
+              parent="menu_pharmacy_orders_root"
+              action="action_op_pharmacy_orders"
+              sequence="20"
+              groups="base_hospital_management.base_hospital_management_group_pharmacist,base_hospital_management.base_hospital_management_group_manager"/>
+
+    <menuitem id="menu_all_pharmacy_orders"
+              name="📋 All Orders"
+              parent="menu_pharmacy_orders_root"
+              action="action_all_pharmacy_orders"
+              sequence="30"
+              groups="base_hospital_management.base_hospital_management_group_pharmacist,base_hospital_management.base_hospital_management_group_manager"/>
+
+</odoo>
