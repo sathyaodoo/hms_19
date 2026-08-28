@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Procedure Prescription Form -->
+    <record id="view_procedure_prescription_form" model="ir.ui.view">
+        <field name="name">hospital.procedure.prescription.form</field>
+        <field name="model">hospital.procedure.prescription</field>
+        <field name="arch" type="xml">
+            <form string="Procedure Prescription">
+                <header>
+                    <button name="action_assign_therapist" type="object"
+                            string="Assign Therapist &amp; Confirm"
+                            class="btn btn-primary"
+                            invisible="state != 'draft'"/>
+                    <button name="action_create_today_session" type="object"
+                            string="Record Today's Session"
+                            class="btn btn-success"
+                            invisible="state in ['draft','done','cancelled']"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,confirmed,in_progress,done"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="reference" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group string="Patient">
+                            <field name="patient_id"/>
+                            <field name="patient_seq" readonly="1"/>
+                            <field name="op_reference" readonly="1"/>
+                        </group>
+                        <group string="Prescription Details">
+                            <field name="doctor_id"/>
+                            <field name="procedure_id"/>
+                            <field name="no_of_sessions"/>
+                            <field name="start_date"/>
+                            <field name="billing_mode"/>
+                            <field name="session_rate" widget="monetary"/>
+                        </group>
+                    </group>
+                    <group string="Therapist Assignment (by RMO)">
+                        <field name="rmo_id"/>
+                        <field name="therapist_ids" widget="many2many_tags"/>
+                        <field name="site_location"/>
+                        <field name="precautions" widget="text"/>
+                        <field name="instructions" widget="text"/>
+                    </group>
+                    <notebook>
+                        <page string="Medicines / Materials Required">
+                            <field name="procedure_medicine_ids">
+                                <list editable="bottom">
+                                    <field name="medicine_id"/>
+                                    <field name="quantity"/>
+                                    <field name="uom_id"/>
+                                    <field name="notes"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Session Log">
+                            <field name="session_ids">
+                                <list decoration-success="state == 'done'"
+                                      decoration-muted="state == 'skipped'">
+                                    <field name="date"/>
+                                    <field name="progress_display"/>
+                                    <field name="therapist_id"/>
+                                    <field name="start_time" widget="float_time"/>
+                                    <field name="end_time" widget="float_time"/>
+                                    <field name="duration"/>
+                                    <field name="patient_response"/>
+                                    <field name="state" widget="badge"/>
+                                    <button name="action_mark_done" type="object"
+                                            string="Mark Done"
+                                            class="btn btn-sm btn-success"
+                                            invisible="state != 'pending'"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- Procedure Prescription List -->
+    <record id="view_procedure_prescription_list" model="ir.ui.view">
+        <field name="name">hospital.procedure.prescription.list</field>
+        <field name="model">hospital.procedure.prescription</field>
+        <field name="arch" type="xml">
+            <list string="Procedure Prescriptions">
+                <field name="reference"/>
+                <field name="patient_id"/>
+                <field name="procedure_id"/>
+                <field name="no_of_sessions"/>
+                <field name="completed_sessions"/>
+                <field name="progress_pct" widget="progressbar"/>
+                <field name="therapist_ids" widget="many2many_tags"/>
+                <field name="state" widget="badge"/>
+            </list>
+        </field>
+    </record>
+</odoo>

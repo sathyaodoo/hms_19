@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Patient Card Template Override — adds Allergies per FRD §9.2 -->
+    <template id="patient_card_report_santhigiri"
+              inherit_id="base_hospital_management.patient_card_report">
+        <!-- Add Allergies after Phone label -->
+        <xpath expr="//label[b[contains(text(),'Phone')]]" position="after">
+            <t t-if="allergies">
+                <label>
+                    <b style="color:#C00000;">&#9888; Allergies: </b>
+                    <t t-esc="allergies"/>
+                </label>
+                <br/>
+            </t>
+        </xpath>
+    </template>
+</odoo>

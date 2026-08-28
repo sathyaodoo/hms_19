@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Treatment Plan Form View (popup when clicking a row) -->
+    <record id="view_treatment_plan_form" model="ir.ui.view">
+        <field name="name">hospital.treatment.plan.form</field>
+        <field name="model">hospital.treatment.plan</field>
+        <field name="arch" type="xml">
+            <form string="Treatment Plan">
+                <sheet>
+                    <group>
+                        <group string="Procedure Details">
+                            <field name="procedure_id"/>
+                            <field name="frequency"/>
+                            <field name="no_of_sessions"/>
+                            <field name="start_date"/>
+                            <field name="state" widget="badge"/>
+                        </group>
+                        <group string="Assignment">
+                            <field name="therapist_ids" widget="many2many_tags"/>
+                            <field name="completed_sessions"/>
+                            <field name="rmo_approved"/>
+                            <field name="procedure_charge" widget="monetary"/>
+                        </group>
+                    </group>
+                    <field name="instructions" placeholder="Special instructions for this procedure..."/>
+
+                    <notebook>
+                        <!-- Medicines for Procedure -->
+                        <page string="Medicines / Materials Required" name="medicines">
+                            <field name="procedure_medicine_ids">
+                                <list editable="bottom">
+                                    <field name="medicine_id" string="Medicine / Material"/>
+                                    <field name="quantity"/>
+                                    <field name="uom_id" string="Unit"/>
+                                </list>
+                            </field>
+                        </page>
+
+                        <!-- Therapist Daily Logs -->
+                        <page string="Therapist Daily Logs" name="therapist_logs">
+                            <field name="therapist_log_ids">
+                                <list editable="bottom"
+                                      decoration-success="status == 'done'"
+                                      decoration-muted="status == 'skipped'">
+                                    <field name="date"/>
+                                    <field name="session_no" string="Session #"/>
+                                    <field name="therapist_id"/>
+                                    <field name="start_time" widget="float_time" string="Start"/>
+                                    <field name="end_time" widget="float_time" string="End"/>
+                                    <field name="duration" string="Duration (hrs)"/>
+                                    <field name="patient_response" string="Patient Response"/>
+                                    <field name="status" widget="badge"/>
+                                    <field name="skip_reason"
+                                           invisible="status != 'skipped'"
+                                           string="Skip Reason"/>
+                                    <button name="action_mark_done" type="object"
+                                            string="✓ Done"
+                                            class="btn btn-sm btn-success"
+                                            invisible="status != 'pending'"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Treatment Plan List View (inside IP form) -->
+    <record id="view_treatment_plan_list" model="ir.ui.view">
+        <field name="name">hospital.treatment.plan.list</field>
+        <field name="model">hospital.treatment.plan</field>
+        <field name="arch" type="xml">
+            <list string="Treatment Plans">
+                <field name="procedure_id" string="Procedure / Therapy"/>
+                <field name="frequency"/>
+                <field name="no_of_sessions" string="Sessions"/>
+                <field name="completed_sessions" string="Completed"/>
+                <field name="therapist_ids" widget="many2many_tags" string="Therapist(s)"/>
+                <field name="rmo_approved" string="RMO ✓"/>
+                <field name="procedure_charge" widget="monetary" string="Charge"/>
+                <field name="state" widget="badge"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- TP Medicine List View -->
+    <record id="view_tp_medicine_list" model="ir.ui.view">
+        <field name="name">hospital.tp.medicine.list</field>
+        <field name="model">hospital.tp.medicine</field>
+        <field name="arch" type="xml">
+            <list string="Medicines for Procedure" editable="bottom">
+                <field name="medicine_id" string="Medicine / Material"/>
+                <field name="quantity" string="Qty per Session"/>
+                <field name="uom_id" string="Unit"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Therapist Log List View -->
+    <record id="view_therapist_log_list" model="ir.ui.view">
+        <field name="name">hospital.therapist.log.list</field>
+        <field name="model">hospital.therapist.log</field>
+        <field name="arch" type="xml">
+            <list string="Therapist Daily Logs"
+                  decoration-success="status == 'done'"
+                  decoration-muted="status == 'skipped'">
+                <field name="date"/>
+                <field name="session_no" string="Session #"/>
+                <field name="therapist_id" string="Therapist"/>
+                <field name="start_time" widget="float_time" string="Start"/>
+                <field name="end_time" widget="float_time" string="End"/>
+                <field name="duration" string="Hrs"/>
+                <field name="patient_response" string="Notes"/>
+                <field name="status" widget="badge"/>
+                <button name="action_mark_done" type="object"
+                        string="Mark Done"
+                        class="btn btn-sm btn-success"
+                        invisible="status != 'pending'"/>
+            </list>
+        </field>
+    </record>
+</odoo>

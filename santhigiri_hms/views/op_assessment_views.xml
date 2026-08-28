@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_op_assessment_form" model="ir.ui.view">
+        <field name="name">hospital.op.assessment.form</field>
+        <field name="model">hospital.op.assessment</field>
+        <field name="arch" type="xml">
+            <form string="Initial Assessment Sheet - OP">
+                <header>
+                    <button name="action_confirm" type="object" string="Confirm"
+                            class="btn-primary" invisible="state != 'draft'"/>
+                    <button name="action_print" type="object" string="Print"
+                            class="btn-secondary" icon="fa-print"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="reference" readonly="1"/></h1>
+                        <span class="text-muted">Form No: SAMC/CS/11</span>
+                    </div>
+                    <group>
+                        <group string="Patient / Visit">
+                            <field name="outpatient_id" readonly="1"/>
+                            <field name="patient_id" readonly="1"/>
+                            <field name="patient_seq" readonly="1"/>
+                            <field name="doctor_id" readonly="1" string="Consultant"/>
+                            <field name="department_id"/>
+                        </group>
+                        <group string="Identifiers">
+                            <field name="assessment_datetime"/>
+                            <field name="uhid_no"/>
+                            <field name="cop_no"/>
+                            <field name="dop_no"/>
+                        </group>
+                    </group>
+
+                    <group string="Vitals">
+                        <group>
+                            <field name="respiratory_rate"/>
+                            <field name="heart_rate"/>
+                            <field name="pulse_rate"/>
+                        </group>
+                        <group>
+                            <field name="height"/>
+                            <field name="weight"/>
+                            <field name="bmi" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="bp"/>
+                            <field name="temperature"/>
+                            <field name="grbs"/>
+                        </group>
+                    </group>
+
+                    <group>
+                        <field name="nutritional_screening" widget="radio"/>
+                        <field name="pain_score" widget="radio"/>
+                    </group>
+
+                    <group string="Clinical Notes">
+                        <field name="complaint_duration"/>
+                        <field name="presenting_complaints" nolabel="1" colspan="2"
+                               placeholder="Presenting complaints and duration..."/>
+                        <field name="current_medication" nolabel="1" colspan="2"/>
+                        <field name="treatment_history" nolabel="1" colspan="2"/>
+                        <field name="investigations_recommended" nolabel="1" colspan="2"/>
+                    </group>
+
+                    <notebook>
+                        <page string="Care Plan Strategy" name="care_plan">
+                            <group>
+                                <field name="care_plan_curative"/>
+                                <field name="care_plan_preventive"/>
+                                <field name="care_plan_rehabilitative"/>
+                                <field name="care_plan_outcome"/>
+                            </group>
+                        </page>
+                        <page string="Medication Order" name="medication_order">
+                            <field name="prescription_ids" readonly="1">
+                                <list>
+                                    <field name="medicine_id"/>
+                                    <field name="route"/>
+                                    <field name="no_intakes" string="Dose"/>
+                                    <field name="time"/>
+                                    <field name="anupanam" string="Anupana"/>
+                                    <field name="duration_days" string="Duration (Days)"/>
+                                </list>
+                            </field>
+                            <p class="text-muted mt-2">
+                                To add or edit medicines, use the Prescription tab
+                                on the linked OP form.
+                            </p>
+                        </page>
+                        <page string="Treatment Order" name="treatment_order">
+                            <field name="procedure_prescription_ids" readonly="1">
+                                <list>
+                                    <field name="procedure_id" string="Procedure Name"/>
+                                    <field name="site_location" string="Site / Location"/>
+                                    <field name="no_of_sessions" string="Duration (Sessions)"/>
+                                    <field name="precautions" string="Precautions if any"/>
+                                    <field name="state" widget="badge"/>
+                                </list>
+                            </field>
+                            <p class="text-muted mt-2">
+                                To add or edit procedures, use "OP + Daily Procedures"
+                                on the OP form.
+                            </p>
+                        </page>
+                    </notebook>
+
+                    <group string="Sign-off" invisible="state != 'confirmed'">
+                        <field name="consultant_signoff_id"/>
+                        <field name="signoff_date"/>
+                        <field name="signoff_time"/>
+                    </group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_op_assessment_list" model="ir.ui.view">
+        <field name="name">hospital.op.assessment.list</field>
+        <field name="model">hospital.op.assessment</field>
+        <field name="arch" type="xml">
+            <list string="Initial Assessment Sheets">
+                <field name="reference"/>
+                <field name="patient_id"/>
+                <field name="assessment_datetime"/>
+                <field name="doctor_id"/>
+                <field name="nutritional_screening"/>
+                <field name="pain_score"/>
+                <field name="state" widget="badge"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_op_assessment" model="ir.actions.act_window">
+        <field name="name">Initial Assessment Sheets (OP)</field>
+        <field name="res_model">hospital.op.assessment</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- Smart button + link on the OP form -->
+    <record id="view_outpatient_form_assessment_button" model="ir.ui.view">
+        <field name="name">hospital.outpatient.form.assessment.button</field>
+        <field name="model">hospital.outpatient</field>
+        <field name="inherit_id" ref="base_hospital_management.hospital_outpatient_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[hasclass('oe_button_box')]" position="inside">
+                <button name="action_open_assessment" type="object"
+                        class="oe_stat_button" icon="fa-stethoscope">
+                    <field name="assessment_count" widget="statinfo"
+                           string="Initial Assessment"/>
+                </button>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

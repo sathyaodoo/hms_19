@@ -1,0 +1,230 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Intern Master Form -->
+    <record id="view_intern_form" model="ir.ui.view">
+        <field name="name">hospital.intern.form</field>
+        <field name="model">hospital.intern</field>
+        <field name="arch" type="xml">
+            <form string="Intern / Student Profile">
+                <header>
+                    <button name="action_check_in" type="object"
+                            string="⏱ Check In"
+                            class="btn btn-success"
+                            invisible="state != 'active'"
+                            groups="santhigiri_hms.group_intern"/>
+                    <button name="action_check_out" type="object"
+                            string="⏹ Check Out"
+                            class="btn btn-secondary"
+                            invisible="state != 'active'"
+                            groups="santhigiri_hms.group_intern"/>
+                    <button name="action_mark_today_present" type="object"
+                            string="✓ Mark Present"
+                            class="btn btn-info"
+                            invisible="state != 'active'"
+                            groups="base_hospital_management.base_hospital_management_group_manager,base_hospital_management.base_hospital_management_group_doctor"/>
+                    <button name="action_mark_today_absent" type="object"
+                            string="✗ Mark Absent"
+                            class="btn btn-warning"
+                            invisible="state != 'active'"
+                            groups="base_hospital_management.base_hospital_management_group_manager,base_hospital_management.base_hospital_management_group_doctor"/>
+                    <button name="action_print_completion_report" type="object"
+                            string="Print Completion Certificate"
+                            invisible="state != 'completed'"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name"/></h1>
+                        <h2><field name="intern_seq" readonly="1"/></h2>
+                    </div>
+                    <group>
+                        <group string="Personal Details">
+                            <field name="course"/>
+                            <field name="batch"/>
+                            <field name="aadhaar_no"/>
+                            <field name="phone" widget="phone"/>
+                            <field name="email" widget="email"/>
+                            <field name="partner_id"/>
+                            <field name="user_id" string="Odoo User Account"
+                                   domain="[('share','=',False)]"/>
+                        </group>
+                        <group string="Academic Registration">
+                            <field name="college_id"/>
+                            <field name="college_register_no"/>
+                            <field name="university_reg_no"/>
+                            <field name="medical_council_reg_no"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="Current Rotation">
+                            <field name="current_dept_id"/>
+                            <field name="rotation_start"/>
+                            <field name="rotation_end"/>
+                            <field name="supervisor_hod_id"/>
+                            <field name="approved_by"/>
+                        </group>
+                        <group string="Statistics">
+                            <field name="total_attendance" readonly="1"/>
+                            <field name="attendance_pct" readonly="1"/>
+                            <field name="total_cases" readonly="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Rotation Schedule">
+                            <field name="rotation_ids">
+                                <list editable="bottom">
+                                    <field name="dept_id"/>
+                                    <field name="start_date"/>
+                                    <field name="end_date"/>
+                                    <field name="supervisor_id"/>
+                                    <field name="approved_by"/>
+                                    <field name="status" widget="badge"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Attendance">
+                            <field name="attendance_ids">
+                                <list editable="bottom">
+                                    <field name="date"/>
+                                    <field name="check_in"/>
+                                    <field name="check_out"/>
+                                    <field name="status" widget="badge"/>
+                                    <field name="confirmed_by"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Ward Rounds (IP)" name="ward_rounds">
+                            <field name="ward_round_ids">
+                                <list decoration-success="is_signed_off == True">
+                                    <field name="date"/>
+                                    <field name="inpatient_id" string="IP Patient"/>
+                                    <field name="supervising_doctor_id" string="Supervisor"/>
+                                    <field name="bp_systolic" string="BP Sys"/>
+                                    <field name="bp_diastolic" string="BP Dia"/>
+                                    <field name="temperature" string="Temp °F"/>
+                                    <field name="bmi"/>
+                                    <field name="supervisor_confirmation" string="Confirmed"/>
+                                    <field name="is_signed_off" string="Signed Off"/>
+                                </list>
+                            </field>
+                        </page>
+
+                        <page string="Case Log">
+                            <field name="case_log_ids">
+                                <list decoration-success="is_signed_off == True">
+                                    <field name="date"/>
+                                    <field name="source" widget="badge"/>
+                                    <field name="case_type"/>
+                                    <field name="exposure_type"/>
+                                    <field name="summary"/>
+                                    <field name="supervisor_id"/>
+                                    <field name="is_signed_off" widget="boolean_toggle"/>
+                                    <button name="action_supervisor_signoff" type="object"
+                                            string="Sign Off"
+                                            invisible="is_signed_off == True"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Monthly Reviews">
+                            <field name="review_ids">
+                                <list>
+                                    <field name="review_month"/>
+                                    <field name="attendance_pct"/>
+                                    <field name="total_cases"/>
+                                    <field name="performance_rating" widget="badge"/>
+                                    <field name="signed_by"/>
+                                    <field name="state" widget="badge"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- Intern List View -->
+    <record id="view_intern_list" model="ir.ui.view">
+        <field name="name">hospital.intern.list</field>
+        <field name="model">hospital.intern</field>
+        <field name="arch" type="xml">
+            <list string="Medical Interns">
+                <field name="intern_seq"/>
+                <field name="name"/>
+                <field name="course"/>
+                <field name="college_id"/>
+                <field name="current_dept_id"/>
+                <field name="rotation_end"/>
+                <field name="attendance_pct"/>
+                <field name="total_cases"/>
+                <field name="state" widget="badge"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Case Log List View -->
+    <record id="view_case_log_list" model="ir.ui.view">
+        <field name="name">hospital.case.log.list</field>
+        <field name="model">hospital.case.log</field>
+        <field name="arch" type="xml">
+            <list string="Clinical Case Logs"
+                  decoration-success="is_signed_off == True"
+                  decoration-muted="is_signed_off == False">
+                <field name="date"/>
+                <field name="intern_id"/>
+                <field name="source" widget="badge"/>
+                <field name="case_type"/>
+                <field name="exposure_type"/>
+                <field name="summary"/>
+                <field name="supervisor_id"/>
+                <field name="is_signed_off" string="Signed Off"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Case Log Form -->
+    <record id="view_case_log_form" model="ir.ui.view">
+        <field name="name">hospital.case.log.form</field>
+        <field name="model">hospital.case.log</field>
+        <field name="arch" type="xml">
+            <form string="Clinical Case Log">
+                <header>
+                    <button name="action_supervisor_signoff" type="object"
+                            string="Sign Off" class="btn btn-primary"
+                            invisible="is_signed_off == True"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group string="Case Details">
+                            <field name="intern_id"/>
+                            <field name="date"/>
+                            <field name="source"/>
+                            <field name="case_type"/>
+                            <field name="exposure_type"/>
+                        </group>
+                        <group string="Patient Reference">
+                            <field name="inpatient_id"
+                                   string="IP Patient"
+                                   invisible="source not in ['ward_round','procedure']"/>
+                            <field name="casualty_id"
+                                   string="Casualty Case"
+                                   invisible="source != 'casualty'"/>
+                            <field name="supervisor_id"/>
+                            <field name="is_signed_off" readonly="1"/>
+                            <field name="signed_off_date" readonly="1"/>
+                        </group>
+                    </group>
+                    <group string="Notes">
+                        <field name="summary" nolabel="1" colspan="2"
+                               placeholder="Brief case summary..."/>
+                        <field name="intern_notes" nolabel="1" colspan="2"
+                               widget="text" placeholder="Intern's clinical notes and observations..."/>
+                        <field name="supervisor_remarks" nolabel="1" colspan="2"
+                               widget="text" placeholder="Supervisor's feedback and remarks..."/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Purchase Order form — Approve/Reject buttons + approval fields -->
+    <!-- Using purchase.view_order_form which is the PO form view -->
+    <record id="view_purchase_order_santhigiri" model="ir.ui.view">
+        <field name="name">purchase.order.form.santhigiri</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase.purchase_order_form"/>
+        <field name="arch" type="xml">
+
+            <!-- Add Approve/Reject buttons inside form header -->
+            <xpath expr="//form/header" position="inside">
+                <button name="action_approve" type="object"
+                        string="✓ Approve"
+                        class="btn btn-success"
+                        invisible="approval_state not in ['pending_level1','pending_level2','pending_level3']"
+                        groups="base_hospital_management.base_hospital_management_group_manager"/>
+                <button name="action_reject" type="object"
+                        string="✗ Reject"
+                        class="btn btn-danger"
+                        invisible="approval_state not in ['pending_level1','pending_level2','pending_level3']"
+                        groups="base_hospital_management.base_hospital_management_group_manager"/>
+            </xpath>
+
+            <!-- Add dept + approval status after partner_id -->
+            <xpath expr="//field[@name='partner_id']" position="after">
+                <field name="dept_id" string="Requesting Department"/>
+                <field name="approval_state" widget="badge"
+                       decoration-success="approval_state == 'approved'"
+                       decoration-danger="approval_state == 'rejected'"
+                       decoration-warning="approval_state in ['pending_level1','pending_level2','pending_level3']"/>
+                <field name="required_approval_level_id"
+                       readonly="1"
+                       invisible="not required_approval_level_id"
+                       string="Required Level"/>
+            </xpath>
+
+        </field>
+    </record>
+
+    <!-- Stock picking — QC Inspection tab -->
+    <record id="view_stock_picking_qc_santhigiri" model="ir.ui.view">
+        <field name="name">stock.picking.qc.santhigiri</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.view_picking_form"/>
+        <field name="arch" type="xml">
+
+            <!-- QC buttons before Validate -->
+            <xpath expr="//button[@name='button_validate']" position="before">
+                <button name="action_qc_approve" type="object"
+                        string="✓ Approve QC"
+                        class="btn btn-success"
+                        invisible="qc_state != 'pending' or picking_type_code != 'incoming'"/>
+                <button name="action_qc_reject" type="object"
+                        string="✗ Reject QC"
+                        class="btn btn-danger"
+                        invisible="qc_state != 'pending' or picking_type_code != 'incoming'"/>
+            </xpath>
+
+            <!-- QC tab in notebook -->
+            <xpath expr="//notebook" position="inside">
+                <page string="QC Inspection" name="qc_tab"
+                      invisible="picking_type_code != 'incoming'">
+                    <group>
+                        <group>
+                            <field name="qc_required"/>
+                            <field name="qc_state" widget="badge"
+                                   decoration-success="qc_state == 'approved'"
+                                   decoration-danger="qc_state == 'rejected'"
+                                   decoration-warning="qc_state == 'pending'"/>
+                        </group>
+                        <group>
+                            <field name="qc_by" string="QC Inspector"/>
+                            <field name="qc_date" string="Inspection Date"/>
+                        </group>
+                    </group>
+                    <field name="qc_notes" string="QC Notes"
+                           placeholder="Inspection findings..."/>
+                </page>
+            </xpath>
+
+        </field>
+    </record>
+</odoo>

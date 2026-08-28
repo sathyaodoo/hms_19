@@ -1,0 +1,285 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ══ Page 1: Enter Patient ID ══════════════════════════════════════════ -->
+    <template id="portal_booking_home" name="Book Appointment — Enter Patient ID">
+        <t t-call="web.layout">
+            <t t-set="head">
+                <style>
+                    body { background: #f0f4f8; font-family: Arial, sans-serif; }
+                    .booking-card {
+                        max-width: 480px; margin: 80px auto; background: #fff;
+                        border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.10);
+                        overflow: hidden;
+                    }
+                    .booking-header {
+                        background: #1F4E78; color: #fff; padding: 28px 32px;
+                        text-align: center;
+                    }
+                    .booking-header h2 { margin: 0; font-size: 1.4rem; }
+                    .booking-header p { margin: 6px 0 0; opacity: 0.8; font-size: 0.9rem; }
+                    .booking-body { padding: 32px; }
+                    .form-label { font-weight: bold; color: #333; margin-bottom: 6px; display: block; }
+                    .form-control {
+                        width: 100%; padding: 10px 14px; border: 1.5px solid #ccc;
+                        border-radius: 8px; font-size: 1rem; box-sizing: border-box;
+                        transition: border-color 0.2s;
+                    }
+                    .form-control:focus { border-color: #1F4E78; outline: none; }
+                    .btn-primary {
+                        background: #1F4E78; color: #fff; border: none; border-radius: 8px;
+                        padding: 12px; width: 100%; font-size: 1rem; cursor: pointer;
+                        margin-top: 18px; transition: background 0.2s;
+                    }
+                    .btn-primary:hover { background: #2F5496; }
+                    .alert-error {
+                        background: #FFEBEE; border-left: 4px solid #C00000;
+                        color: #C00000; padding: 12px 16px; border-radius: 6px;
+                        margin-bottom: 18px; font-size: 0.92rem;
+                    }
+                    .alert-success {
+                        background: #E8F5E9; border-left: 4px solid #1B5E20;
+                        color: #1B5E20; padding: 12px 16px; border-radius: 6px;
+                        margin-bottom: 18px; font-size: 0.92rem;
+                    }
+                    .info-box {
+                        background: #EBF5FB; border-radius: 8px; padding: 14px 16px;
+                        margin-top: 20px; font-size: 0.88rem; color: #1F4E78;
+                    }
+                </style>
+            </t>
+            <div class="booking-card">
+                <div class="booking-header">
+                    <h2>&#128197; Book an Appointment</h2>
+                    <p>Santhigiri Ayurveda Hospital, Thiruvananthapuram</p>
+                </div>
+                <div class="booking-body">
+                    <t t-if="error">
+                        <div class="alert-error">&#9888; <t t-esc="error"/></div>
+                    </t>
+                    <t t-if="success">
+                        <div class="alert-success">&#10003; <t t-esc="success"/></div>
+                    </t>
+                    <form action="/santhigiri/book/send_otp" method="post">
+                        <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                        <label class="form-label" for="patient_id">Your Patient ID</label>
+                        <input class="form-control" type="text" id="patient_id"
+                               name="patient_id" placeholder="e.g. PAT-2025-0001"
+                               required="required" autocomplete="off"/>
+                        <button class="btn-primary" type="submit">
+                            Send OTP to Registered Mobile &#8594;
+                        </button>
+                    </form>
+                    <div class="info-box">
+                        &#8505; Only existing patients can book online.<br/>
+                        Your Patient ID is printed on your hospital ID card.<br/>
+                        For new registration, please visit the hospital reception.
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <!-- ══ Page 2: Enter OTP ═════════════════════════════════════════════════ -->
+    <template id="portal_booking_otp" name="Book Appointment — Verify OTP">
+        <t t-call="web.layout">
+            <t t-set="head">
+                <style>
+                    body { background: #f0f4f8; font-family: Arial, sans-serif; }
+                    .booking-card { max-width: 480px; margin: 80px auto; background: #fff; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.10); overflow: hidden; }
+                    .booking-header { background: #1F4E78; color: #fff; padding: 28px 32px; text-align: center; }
+                    .booking-header h2 { margin: 0; font-size: 1.4rem; }
+                    .booking-header p { margin: 6px 0 0; opacity: 0.8; font-size: 0.9rem; }
+                    .booking-body { padding: 32px; }
+                    .form-label { font-weight: bold; color: #333; margin-bottom: 6px; display: block; }
+                    .form-control { width: 100%; padding: 10px 14px; border: 1.5px solid #ccc; border-radius: 8px; font-size: 1.2rem; text-align: center; letter-spacing: 8px; box-sizing: border-box; }
+                    .form-control:focus { border-color: #1F4E78; outline: none; }
+                    .btn-primary { background: #1F4E78; color: #fff; border: none; border-radius: 8px; padding: 12px; width: 100%; font-size: 1rem; cursor: pointer; margin-top: 18px; }
+                    .btn-primary:hover { background: #2F5496; }
+                    .alert-error { background: #FFEBEE; border-left: 4px solid #C00000; color: #C00000; padding: 12px 16px; border-radius: 6px; margin-bottom: 18px; font-size: 0.92rem; }
+                    .info-box { background: #EBF5FB; border-radius: 8px; padding: 14px 16px; margin-top: 20px; font-size: 0.88rem; color: #1F4E78; }
+                    .back-link { display: block; text-align: center; margin-top: 16px; color: #2F5496; font-size: 0.9rem; text-decoration: none; }
+                </style>
+            </t>
+            <div class="booking-card">
+                <div class="booking-header">
+                    <h2>&#128274; Verify OTP</h2>
+                    <p>Santhigiri Ayurveda Hospital</p>
+                </div>
+                <div class="booking-body">
+                    <t t-if="error">
+                        <div class="alert-error">&#9888; <t t-esc="error"/></div>
+                    </t>
+                    <div class="info-box" style="margin-bottom:20px;">
+                        An OTP has been sent to the mobile number ending in
+                        <strong>**<t t-if="phone_registered">ending in **<t t-esc="patient_phone"/></t><t t-else="">registered at reception</t></strong>
+                        registered for patient <strong><t t-esc="patient_name or ''"/></strong>.<br/>
+                        OTP is valid for <strong>10 minutes</strong>.
+                    </div>
+                    <form action="/santhigiri/book/verify_otp" method="post">
+                        <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                        <label class="form-label" for="otp">Enter 6-digit OTP</label>
+                        <input class="form-control" type="text" id="otp"
+                               name="otp" placeholder="000000" maxlength="6"
+                               required="required" autocomplete="off" autofocus="autofocus"/>
+                        <button class="btn-primary" type="submit">
+                            Verify OTP &#8594;
+                        </button>
+                    </form>
+                    <a href="/santhigiri/book" class="back-link">&#8592; Back — re-enter Patient ID</a>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <!-- ══ Page 3: Select Slot ═══════════════════════════════════════════════ -->
+    <template id="portal_booking_slots" name="Book Appointment — Select Slot">
+        <t t-call="web.layout">
+            <t t-set="head">
+                <style>
+                    body { background: #f0f4f8; font-family: Arial, sans-serif; }
+                    .booking-card { max-width: 680px; margin: 60px auto; background: #fff; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.10); overflow: hidden; }
+                    .booking-header { background: #1F4E78; color: #fff; padding: 24px 32px; }
+                    .booking-header h2 { margin: 0; font-size: 1.3rem; }
+                    .booking-header p { margin: 6px 0 0; opacity: 0.8; font-size: 0.9rem; }
+                    .booking-body { padding: 28px 32px; }
+                    .slot-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 16px; }
+                    .slot-card {
+                        border: 1.5px solid #BDD7EE; border-radius: 10px; padding: 16px;
+                        cursor: pointer; transition: all 0.2s; background: #EBF5FB;
+                    }
+                    .slot-card:hover { border-color: #1F4E78; background: #DEEAF1; transform: translateY(-2px); }
+                    .slot-card input[type=radio] { display: none; }
+                    .slot-card.selected { border-color: #1F4E78; background: #DEEAF1; }
+                    .slot-doctor { font-weight: bold; color: #1F4E78; font-size: 1rem; }
+                    .slot-time { color: #2F5496; font-size: 0.92rem; margin-top: 4px; }
+                    .slot-date { color: #555; font-size: 0.88rem; margin-top: 2px; }
+                    .slot-remaining { color: #1B5E20; font-size: 0.82rem; margin-top: 6px; font-weight: bold; }
+                    .btn-primary { background: #1F4E78; color: #fff; border: none; border-radius: 8px; padding: 12px 28px; font-size: 1rem; cursor: pointer; margin-top: 22px; }
+                    .btn-primary:hover { background: #2F5496; }
+                    .patient-info { background: #E8F5E9; border-radius: 8px; padding: 12px 16px; margin-bottom: 20px; color: #1B5E20; font-size: 0.92rem; }
+                    .no-slots { text-align: center; color: #888; padding: 40px 20px; }
+                </style>
+                <script>
+                    document.addEventListener('DOMContentLoaded', function() {
+                        document.querySelectorAll('.slot-card').forEach(function(card) {
+                            card.addEventListener('click', function() {
+                                document.querySelectorAll('.slot-card').forEach(c => c.classList.remove('selected'));
+                                card.classList.add('selected');
+                                card.querySelector('input[type=radio]').checked = true;
+                            });
+                        });
+                    });
+                </script>
+            </t>
+            <div class="booking-card">
+                <div class="booking-header">
+                    <h2>&#128197; Select Your Appointment Slot</h2>
+                    <p>Santhigiri Ayurveda Hospital — Available slots for next 7 days</p>
+                </div>
+                <div class="booking-body">
+                    <div class="patient-info">
+                        &#10003; Verified: <strong><t t-esc="patient.name"/></strong>
+                        (Patient ID: <t t-esc="patient.patient_seq or ''"/>)
+                    </div>
+                    <t t-if="allocations">
+                        <p style="color:#333;font-weight:bold;">Select a slot below and click Confirm:</p>
+                        <form action="/santhigiri/book/confirm" method="post">
+                            <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                            <div class="slot-grid">
+                                <t t-foreach="allocations" t-as="alloc">
+                                    <label class="slot-card">
+                                        <input type="radio" name="allocation_id"
+                                               t-att-value="alloc.id" required="required"/>
+                                        <div class="slot-doctor">
+                                            &#128084;
+                                            <t t-esc="alloc.doctor_id.name if alloc.doctor_id else 'Doctor'"/>
+                                        </div>
+                                        <div class="slot-time">
+                                            &#128336;
+                                            <t t-esc="alloc.work_from"/> – <t t-esc="alloc.work_to"/>
+                                        </div>
+                                        <div class="slot-date">
+                                            &#128197; <t t-esc="alloc.date"/>
+                                        </div>
+                                        <div class="slot-remaining">
+                                            <t t-esc="alloc.slot_remaining"/> slots remaining
+                                        </div>
+                                    </label>
+                                </t>
+                            </div>
+                            <button class="btn-primary" type="submit">
+                                Confirm Appointment &#10003;
+                            </button>
+                        </form>
+                    </t>
+                    <t t-else="">
+                        <div class="no-slots">
+                            <p style="font-size:2rem;">&#128197;</p>
+                            <p>No available slots for the next 7 days.</p>
+                            <p style="font-size:0.9rem;color:#aaa;">Please call the hospital or visit reception to schedule an appointment.</p>
+                        </div>
+                    </t>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <!-- ══ Page 4: Booking Confirmed ════════════════════════════════════════ -->
+    <template id="portal_booking_success" name="Book Appointment — Confirmed">
+        <t t-call="web.layout">
+            <t t-set="head">
+                <style>
+                    body { background: #f0f4f8; font-family: Arial, sans-serif; }
+                    .booking-card { max-width: 520px; margin: 80px auto; background: #fff; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.10); overflow: hidden; }
+                    .booking-header { background: #1B5E20; color: #fff; padding: 28px 32px; text-align: center; }
+                    .booking-header h2 { margin: 0; font-size: 1.5rem; }
+                    .booking-body { padding: 32px; text-align: center; }
+                    .ref-box { background: #E8F5E9; border-radius: 10px; padding: 20px; margin: 20px 0; }
+                    .ref-number { font-size: 1.8rem; font-weight: bold; color: #1B5E20; letter-spacing: 2px; }
+                    .ref-label { font-size: 0.85rem; color: #555; margin-bottom: 6px; }
+                    .details-table { width: 100%; border-collapse: collapse; margin: 16px 0; text-align: left; }
+                    .details-table td { padding: 8px 12px; border-bottom: 1px solid #eee; font-size: 0.92rem; }
+                    .details-table td:first-child { font-weight: bold; color: #1F4E78; width: 45%; }
+                    .btn-home { display: inline-block; background: #1F4E78; color: #fff; border-radius: 8px; padding: 11px 28px; text-decoration: none; font-size: 0.95rem; margin-top: 10px; }
+                    .note { font-size: 0.85rem; color: #888; margin-top: 16px; }
+                </style>
+            </t>
+            <div class="booking-card">
+                <div class="booking-header">
+                    <h2>&#10003; Appointment Confirmed!</h2>
+                </div>
+                <div class="booking-body">
+                    <p style="color:#333;">Your appointment has been successfully booked at<br/>
+                    <strong>Santhigiri Ayurveda Hospital</strong>.</p>
+                    <div class="ref-box">
+                        <div class="ref-label">Your OP Reference Number</div>
+                        <div class="ref-number"><t t-esc="op.op_reference if op else 'OP/---'"/></div>
+                    </div>
+                    <table class="details-table">
+                        <tr>
+                            <td>Patient Name</td>
+                            <td><t t-esc="patient.name"/></td>
+                        </tr>
+                        <tr>
+                            <td>Patient ID</td>
+                            <td><t t-esc="patient.patient_seq or ''"/></td>
+                        </tr>
+                        <tr>
+                            <td>Appointment Date</td>
+                            <td><t t-esc="op.op_date if op else ''"/></td>
+                        </tr>
+                        <tr>
+                            <td>Doctor / Slot</td>
+                            <td><t t-esc="op.doctor_id.doctor_id.name if op and op.doctor_id and op.doctor_id.doctor_id else '—'"/></td>
+                        </tr>
+                    </table>
+                    <p class="note">
+                        &#8505; Please bring your Patient ID card when you visit.<br/>
+                        A confirmation has been sent to your registered email.
+                    </p>
+                    <a href="/santhigiri/book" class="btn-home">&#8592; Book Another Appointment</a>
+                </div>
+            </div>
+        </t>
+    </template>
+</odoo>
