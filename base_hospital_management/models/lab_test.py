@@ -44,4 +44,4 @@ class LabTest(models.Model):
                                    help='Medicines used for the test')
     test_type = fields.Selection(
         [('range', 'Range'), ('objective', 'Objective')],
-        string='Type', required=True, help='Type of test')
+        string='Type', help='Type of test')

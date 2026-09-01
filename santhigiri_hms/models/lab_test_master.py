@@ -49,3 +49,45 @@ class LabTestResult(models.Model):
             if rec.is_abnormal:
                 rec._notify_doctor_abnormal()
         return records
+    
+    
+ 
+class LabTestCategory(models.Model):
+    _name = 'lab.test.category'
+    _description = 'Lab Test Category'
+    _order = 'sequence, name'
+ 
+    name = fields.Char(string='Category Name', required=True)
+    sequence = fields.Integer(string='Sequence', default=10)
+    description = fields.Text(string='Description')
+    color = fields.Integer(string='Color')
+    active = fields.Boolean(string='Active', default=True)
+    test_ids = fields.One2many('lab.test', 'category_id', string='Tests')
+    test_count = fields.Integer(string='Test Count', compute='_compute_test_count')
+ 
+    def _compute_test_count(self):
+        for rec in self:
+            rec.test_count = len(rec.test_ids)
+ 
+    def action_view_tests(self):
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Lab Tests — ' + self.name,
+            'res_model': 'lab.test',
+            'view_mode': 'list,form',
+            'domain': [('category_id', '=', self.id)],
+            'context': {'default_category_id': self.id},
+        }
+ 
+ 
+class LabTestExtension(models.Model):
+    """Add category_id to existing lab.test model."""
+    _inherit = 'lab.test'
+ 
+    category_id = fields.Many2one(
+        'lab.test.category',
+        string='Category',
+        help='Group this test under a category (e.g. Haematology, Biochemistry, etc.)',
+    )
+ 

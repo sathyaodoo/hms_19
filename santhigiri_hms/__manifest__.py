@@ -44,6 +44,7 @@
         'views/patient_emr_views.xml',
         'views/op_assessment_views.xml',
         'views/reassessment_views.xml',
+        'views/lab_test_category_views.xml',
 
         # Reports
         'reports/patient_card_override.xml',
