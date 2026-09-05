@@ -144,3 +144,4 @@ access_lab_cat_lab,lab.cat.lab,model_lab_test_category,base_hospital_management.
 access_lab_cat_doctor,lab.cat.doctor,model_lab_test_category,base_hospital_management.base_hospital_management_group_doctor,1,0,0,0
 access_lab_cat_nurse,lab.cat.nurse,model_lab_test_category,base_hospital_management.base_hospital_management_group_nurse,1,0,0,0
 access_lab_cat_receptionist,lab.cat.receptionist,model_lab_test_category,base_hospital_management.base_hospital_management_group_receptionist,1,0,0,0
+access_res_company_restrict_menu,res.company.restrict.menu,model_res_company_restrict_menu,base.group_system,1,1,1,1

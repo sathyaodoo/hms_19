@@ -95,4 +95,8 @@
 
     </data>
 
+    <record id="group_hide_menu_for_specific_company" model="res.groups">
+        <field name="name">Hide Menu for Specific Company</field>
+    </record>
+
 </odoo>

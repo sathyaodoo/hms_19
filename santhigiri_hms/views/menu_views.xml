@@ -311,4 +311,23 @@
               sequence="30"
               groups="base_hospital_management.base_hospital_management_group_pharmacist,base_hospital_management.base_hospital_management_group_manager"/>
 
+    <!-- ══ Company-wise App/Menu Restriction — Restrict Menu tab on Company form ══ -->
+    <record id="view_company_form_restrict_menu" model="ir.ui.view">
+        <field name="name">res.company.form.restrict.menu</field>
+        <field name="model">res.company</field>
+        <field name="inherit_id" ref="base.view_company_form"/>
+        <field name="arch" type="xml">
+            <notebook position="inside">
+                <page string="Restrict Menu">
+                    <field name="restrict_menu_ids">
+                        <list editable="bottom">
+                            <field name="menu_id"/>
+                            <field name="user_ids" widget="many2many_tags"/>
+                        </list>
+                    </field>
+                </page>
+            </notebook>
+        </field>
+    </record>
+
 </odoo>
