@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="portal_canteen_menu_template" name="Canteen Menu">
+        <t t-call="website.layout">
+            <div class="container my-4">
+                <h2>Today's Canteen Menu</h2>
+                <div t-if="error" class="alert alert-warning" role="alert">
+                    Please enter a quantity (greater than 0) for at least one item before placing your order.
+                </div>
+                <div t-if="not items" class="alert alert-info" role="alert">
+                    No menu items are available right now. Please check back later.
+                </div>
+                <form t-if="items" action="/canteen/order/new" method="post">
+                    <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                    <table class="table">
+                        <thead>
+                            <tr><th>Item</th><th>Category</th><th>Price</th><th>Qty</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr t-foreach="items" t-as="item">
+                                <td><t t-out="item.name"/></td>
+                                <td><t t-out="item.category"/></td>
+                                <td><t t-out="item.price"/></td>
+                                <td>
+                                    <input type="number" min="0"
+                                           t-att-name="'item_%s' % item.id"
+                                           class="form-control" style="width:80px;" value="0"/>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <button type="submit" class="btn btn-primary">Place Pre-Order</button>
+                </form>
+            </div>
+        </t>
+    </template>
+
+    <template id="portal_canteen_order_template" name="Canteen Order Confirmation">
+        <t t-call="website.layout">
+            <div class="container my-4">
+                <h2>Order Confirmed</h2>
+                <p><strong>Token No.:</strong> <t t-out="order.token_number"/></p>
+                <p><strong>Status:</strong> <t t-out="order.state"/></p>
+                <img t-if="order.qr_code"
+                     t-att-src="'data:image/png;base64,%s' % order.qr_code.decode('utf-8')"
+                     style="width:150px;height:150px;"/>
+                <table class="table mt-3">
+                    <thead><tr><th>Item</th><th>Qty</th><th>Amount</th></tr></thead>
+                    <tbody>
+                        <tr t-foreach="order.order_line_ids" t-as="line">
+                            <td><t t-out="line.menu_item_id.name"/></td>
+                            <td><t t-out="line.qty"/></td>
+                            <td><t t-out="line.price_subtotal"/></td>
+                        </tr>
+                    </tbody>
+                </table>
+                <h4>Total: <t t-out="order.amount_total"/></h4>
+            </div>
+        </t>
+    </template>
+</odoo>

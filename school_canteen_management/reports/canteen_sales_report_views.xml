@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Pivot/Graph view for Popular Items & Daily Sales Analysis,
+         based on canteen order lines. For full POS-cash sales reporting,
+         use the standard Point of Sale > Reporting > Orders pivot/graph,
+         filtered by canteen product category. -->
+    <record id="view_canteen_order_line_pivot" model="ir.ui.view">
+        <field name="name">canteen.order.line.pivot</field>
+        <field name="model">canteen.order.line</field>
+        <field name="arch" type="xml">
+            <pivot string="Canteen Sales Analysis">
+                <field name="menu_item_id" type="row"/>
+                <field name="order_date" type="col"/>
+                <field name="qty" type="measure"/>
+                <field name="price_subtotal" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="view_canteen_order_line_graph" model="ir.ui.view">
+        <field name="name">canteen.order.line.graph</field>
+        <field name="model">canteen.order.line</field>
+        <field name="arch" type="xml">
+            <graph string="Popular Items" type="bar">
+                <field name="menu_item_id" type="row"/>
+                <field name="qty" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="action_canteen_sales_report" model="ir.actions.act_window">
+        <field name="name">Daily Sales / Popular Items Report</field>
+        <field name="res_model">canteen.order.line</field>
+        <field name="view_mode">pivot,graph,list</field>
+    </record>
+</odoo>

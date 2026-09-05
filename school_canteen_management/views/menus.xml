@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_canteen_root" name="Canteen" sequence="60"
+              web_icon="school_canteen_management,static/description/icon.png"
+              groups="school_canteen_management.group_canteen_operator"/>
+
+    <menuitem id="menu_canteen_operations" name="Operations" parent="menu_canteen_root" sequence="10"/>
+    <menuitem id="menu_canteen_order" name="Orders / Tokens"
+              parent="menu_canteen_operations" action="action_canteen_order" sequence="10"/>
+    <menuitem id="menu_student_wallet" name="Student Wallets"
+              parent="menu_canteen_operations" action="action_student_wallet" sequence="20"/>
+
+    <menuitem id="menu_canteen_configuration" name="Configuration" parent="menu_canteen_root"
+              groups="school_canteen_management.group_canteen_manager" sequence="20"/>
+    <menuitem id="menu_canteen_menu_item" name="Menu Items"
+              parent="menu_canteen_configuration" action="action_canteen_menu_item" sequence="10"/>
+    <menuitem id="menu_canteen_mess_menu" name="Hostel Mess Plans"
+              parent="menu_canteen_configuration" action="action_canteen_mess_menu" sequence="20"/>
+
+    <menuitem id="menu_canteen_reports" name="Reports" parent="menu_canteen_root"
+              groups="school_canteen_management.group_canteen_manager" sequence="30"/>
+    <menuitem id="menu_canteen_wastage_log" name="Wastage / Spoilage Log"
+              parent="menu_canteen_reports" action="action_canteen_wastage_log" sequence="10"/>
+    <menuitem id="menu_canteen_sales_report" name="Daily Sales Report"
+              parent="menu_canteen_reports" action="action_canteen_sales_report" sequence="20"/>
+</odoo>

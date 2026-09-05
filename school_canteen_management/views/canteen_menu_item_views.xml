@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_canteen_menu_item_list" model="ir.ui.view">
+        <field name="name">canteen.menu.item.list</field>
+        <field name="model">canteen.menu.item</field>
+        <field name="arch" type="xml">
+            <list string="Menu Items">
+                <field name="name"/>
+                <field name="category"/>
+                <field name="price"/>
+                <field name="prep_time"/>
+                <field name="is_mess_item"/>
+                <field name="active" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_canteen_menu_item_form" model="ir.ui.view">
+        <field name="name">canteen.menu.item.form</field>
+        <field name="model">canteen.menu.item</field>
+        <field name="arch" type="xml">
+            <form string="Menu Item">
+                <sheet>
+                    <field name="image_1920" widget="image" class="oe_avatar"/>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="e.g. Veg Thali"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="category"/>
+                            <field name="price"/>
+                            <field name="prep_time"/>
+                            <field name="is_mess_item"/>
+                        </group>
+                        <group>
+                            <field name="time_slot_from" widget="float_time"/>
+                            <field name="time_slot_to" widget="float_time"/>
+                            <label for="available_mon" string="Available Days"/>
+                            <div class="o_row">
+                                <field name="available_mon"/><span>Mon</span>
+                                <field name="available_tue"/><span>Tue</span>
+                                <field name="available_wed"/><span>Wed</span>
+                                <field name="available_thu"/><span>Thu</span>
+                                <field name="available_fri"/><span>Fri</span>
+                                <field name="available_sat"/><span>Sat</span>
+                                <field name="available_sun"/><span>Sun</span>
+                            </div>
+                        </group>
+                    </group>
+                    <group string="Backend Linkage">
+                        <field name="product_id"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_canteen_menu_item_search" model="ir.ui.view">
+        <field name="name">canteen.menu.item.search</field>
+        <field name="model">canteen.menu.item</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <filter string="Canteen Items" name="canteen_items" domain="[('is_mess_item','=',False)]"/>
+                <filter string="Mess Items" name="mess_items" domain="[('is_mess_item','=',True)]"/>
+                <group>
+                    <filter string="Category" name="group_category" context="{'group_by':'category'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_canteen_menu_item" model="ir.actions.act_window">
+        <field name="name">Menu Items</field>
+        <field name="res_model">canteen.menu.item</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

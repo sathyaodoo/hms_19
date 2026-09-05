@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_report_canteen_token" model="ir.actions.report">
+        <field name="name">Canteen Token</field>
+        <field name="model">canteen.order</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">school_canteen_management.report_canteen_token</field>
+        <field name="report_file">school_canteen_management.report_canteen_token</field>
+        <field name="print_report_name">'Token - %s' % (object.token_number)</field>
+        <field name="binding_model_id" ref="model_canteen_order"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <template id="report_canteen_token">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <div class="page" style="text-align:center;">
+                    <h2>Canteen Token</h2>
+                    <h1><t t-out="o.token_number"/></h1>
+                    <p><strong>Name:</strong> <t t-out="o.partner_id.name"/></p>
+                    <p><strong>Date:</strong> <t t-out="o.order_date"/></p>
+                    <p><strong>Pickup Slot:</strong> <t t-out="o.pickup_time_slot"/></p>
+                    <img t-if="o.qr_code" t-att-src="'data:image/png;base64,%s' % o.qr_code.decode('utf-8')"
+                         style="width:150px;height:150px;"/>
+                    <table class="table table-sm" style="margin-top:20px;">
+                        <thead>
+                            <tr><th>Item</th><th>Qty</th><th>Amount</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr t-foreach="o.order_line_ids" t-as="line">
+                                <td><t t-out="line.menu_item_id.name"/></td>
+                                <td><t t-out="line.qty"/></td>
+                                <td><t t-out="line.price_subtotal"/></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <h3>Total: <t t-out="o.amount_total"/></h3>
+                </div>
+            </t>
+        </t>
+    </template>
+</odoo>
