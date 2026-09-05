@@ -33,6 +33,7 @@
                  (marital_status is the last clean <field> in the right group) -->
             <xpath expr="//field[@name='marital_status']" position="after">
                <field name="age" readonly="1"/>
+               <field name="age_manual" invisible="date_of_birth != False" string="Age (if DOB unknown)"/>
                 <field name="nationality" widget="selection"/>
                 <field name="aadhaar_no"
                        invisible="nationality == 'foreign'"/>

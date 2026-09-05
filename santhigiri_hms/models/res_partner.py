@@ -21,8 +21,12 @@ class ResPartner(models.Model):
 
     # ── Age (computed from base module's date_of_birth) ──────────────────────
     age = fields.Integer(string='Age', compute='_compute_age', store=True)
+    age_manual = fields.Integer(
+        string='Age (Approx., if DOB unknown)',
+        help='Enter approximate age only when exact Date of Birth is not available.',
+    )
 
-    @api.depends('date_of_birth')
+    @api.depends('date_of_birth', 'age_manual')
     def _compute_age(self):
         today = fields.Date.today()
         for rec in self:
@@ -30,8 +34,10 @@ class ResPartner(models.Model):
                 dob = rec.date_of_birth
                 rec.age = today.year - dob.year - (
                     (today.month, today.day) < (dob.month, dob.day))
+            elif rec.age_manual:
+                rec.age = rec.age_manual
             else:
-                rec.age = 0
+                rec.age = False
 
     # ── Nationality & ID ───────────────────────────────────────────────────────
     nationality = fields.Selection(
