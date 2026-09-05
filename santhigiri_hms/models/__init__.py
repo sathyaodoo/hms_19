@@ -2,6 +2,7 @@
 from . import res_partner
 from . import fee_master
 from . import hr_employee
+from . import ir_ui_menu
 from . import prescription_line
 from . import hospital_outpatient
 from . import hospital_inpatient
