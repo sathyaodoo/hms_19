@@ -57,7 +57,7 @@ class HospitalOutpatient(models.Model):
                                string='Tests',
                                help='Tests for the patient')
     state = fields.Selection(
-        [('draft', 'Draft'), ('op', 'OP'), ('inpatient', 'In Patient'),
+        [('draft', 'Draft'), ('op', 'OP'), ('inpatient', 'In Patient'),('opdone', 'Op Done'),
          ('invoice', 'Invoiced'), ('cancel', 'Canceled')],
         default='draft', string='State', help='State of the outpatient')
     prescription_ids = fields.One2many('prescription.line',
@@ -256,12 +256,25 @@ class HospitalOutpatient(models.Model):
         """Button action for cancelling an op"""
         self.state = 'cancel'
 
+    # def action_confirm(self):
+    #     """Button action for confirming an op"""
+    #     if self.doctor_id.latest_slot == 0:
+    #         self.slot = self.doctor_id.work_from
+    #     else:
+    #         self.slot = self.doctor_id.latest_slot + self.doctor_id.time_avg
+    #     self.doctor_id.latest_slot = self.slot
+    #     self.state = 'op'
     def action_confirm(self):
         """Button action for confirming an op"""
         if self.doctor_id.latest_slot == 0:
             self.slot = self.doctor_id.work_from
         else:
-            self.slot = self.doctor_id.latest_slot + self.doctor_id.time_avg
+            # time_avg is stored in MINUTES, but slot/work_from/work_to are
+            # Float "hours" (float_time format, e.g. 10.5 = 10:30). Convert
+            # minutes -> hours before adding, otherwise slot values blow up
+            # (e.g. 10 + 20 minutes treated as 20 hours = 30).
+            self.slot = self.doctor_id.latest_slot + (
+                self.doctor_id.time_avg / 60.0)
         self.doctor_id.latest_slot = self.slot
         self.state = 'op'
 

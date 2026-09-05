@@ -34,23 +34,23 @@
                             type="object" class="oe_highlight"
                             invisible="state not in ('op','inpatient','invoice')"
                             groups="base_hospital_management.base_hospital_management_group_manager,base_hospital_management.base_hospital_management_group_doctor,base_hospital_management.base_hospital_management_group_receptionist,base_hospital_management.base_hospital_management_group_nurse"/>
-                    <button name="action_convert_to_inpatient"
+                    <!--<button name="action_convert_to_inpatient"
                             string="Convert to Inpatient"
                             class="oe_highlight" invisible="state !='op'" type="object"
-                            groups="base_hospital_management.base_hospital_management_group_manager,base_hospital_management.base_hospital_management_group_doctor,base_hospital_management.base_hospital_management_group_receptionist,base_hospital_management.base_hospital_management_group_nurse"/>
+                            groups="base_hospital_management.base_hospital_management_group_manager,base_hospital_management.base_hospital_management_group_doctor,base_hospital_management.base_hospital_management_group_receptionist,base_hospital_management.base_hospital_management_group_nurse"/>-->
                     <button name="action_create_lab_test"
                             string="Create Test" class="oe_highlight"
                             invisible="state!='op'" type="object"
                             groups="base_hospital_management.base_hospital_management_group_manager,base_hospital_management.base_hospital_management_group_receptionist,base_hospital_management.base_hospital_management_group_lab_assistant,base_hospital_management.base_hospital_management_group_nurse"/>
                     <button name="create_invoice"
                             string="Create Invoice" class="oe_highlight"
-                            invisible="state not in ('op','rft')" type="object"
+                            invisible="state not in ('op','rft','inpatient','opdone')" type="object"
                             groups="base_hospital_management.base_hospital_management_group_manager,base_hospital_management.base_hospital_management_group_lab_assistant,base_hospital_management.base_hospital_management_group_receptionist"/>
                     <button name="action_op_cancel" string="Cancel"
                             invisible="state != 'op'" type="object"
                             groups="base_hospital_management.base_hospital_management_group_manager,base_hospital_management.base_hospital_management_group_receptionist,base_hospital_management.base_hospital_management_group_doctor,base_hospital_management.base_hospital_management_group_nurse"/>
                     <field name="state" widget="statusbar"
-                           statusbar_visible="op,invoice"/>
+                           statusbar_visible="op,opdone,invoice"/>
                 </header>
                 <sheet>
                     <div class="oe_button_box" name="button_box">

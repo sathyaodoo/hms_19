@@ -36,7 +36,7 @@ class HospitalBuilding(models.Model):
                         help='Phone number for contact the building')
     mobile = fields.Char(string='Mobile',
                          help='Mobile number for contact the building')
-    email = fields.Char(string='Email', help='Email of the building')
+    email = fields.Char(string='Name', help='Email of the building')
     room_count = fields.Integer(string="Rooms",
                                 help='Number of rooms in the building',
                                 compute="_compute_room_count")

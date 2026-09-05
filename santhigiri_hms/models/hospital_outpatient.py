@@ -134,7 +134,7 @@ class HospitalOutpatient(models.Model):
         """Outcome 1: Regular OP — prescription routed to pharmacy."""
         self.ensure_one()
         self.outcome = 'regular'
-        self.state = 'invoice'
+        self.state = 'opdone'
         # Create follow-up if date set
         if self.followup_date:
             self._create_followup()

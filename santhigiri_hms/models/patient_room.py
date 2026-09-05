@@ -6,7 +6,7 @@ BASE MODULE provides: name, building_id, floor_no, bed_type, rent, state (avail/
 THIS FILE ADDS: room_sub_type (AC/Non-AC/Suite), rent_non_ac, rent_ac, rent_suite,
                cleaning state, housekeeping methods.
 """
-from odoo import fields, models
+from odoo import fields, models, api
 
 
 class PatientRoom(models.Model):
@@ -60,3 +60,25 @@ class PatientRoom(models.Model):
         elif self.room_sub_type == 'non_ac':
             return self.rent_non_ac or self.rent
         return self.rent
+    
+    from odoo import api, models
+
+
+class HospitalBuilding(models.Model):
+    _inherit = 'hospital.building'
+
+    def _compute_display_name(self):
+        """Show the building's email instead of its code/name in every
+        Many2one dropdown, list, and report that references this model."""
+        for building in self:
+            building.display_name = building.email or building.name or ''
+
+    @api.model
+    def _search_display_name(self, operator, value):
+        """Optional: so typing in the dropdown also matches on email,
+        not just the underlying 'name'/code field. Remove this method
+        if you don't need search-by-email."""
+        domain = super()._search_display_name(operator, value)
+        if operator in ('like', 'ilike', '=', '=like', '=ilike'):
+            domain = ['|', ('email', operator, value)] + domain
+        return domain
