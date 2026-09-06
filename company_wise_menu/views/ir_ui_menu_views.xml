@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Standalone form view -->
+    <record id="view_ir_ui_menu_company_form" model="ir.ui.view">
+        <field name="name">ir.ui.menu.company.form</field>
+        <field name="model">ir.ui.menu</field>
+        <field name="arch" type="xml">
+            <form string="Menu - Company Visibility">
+                <sheet>
+                    <group>
+                        <field name="name" readonly="1"/>
+                        <field name="web_icon" readonly="1" string="Web Icon (only real Apps have this)"/>
+                        <field name="company_ids" widget="many2many_tags"
+                               options="{'no_create': True}"
+                               placeholder="Leave empty = visible for all companies"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Standalone list view -->
+    <record id="view_ir_ui_menu_company_list" model="ir.ui.view">
+        <field name="name">ir.ui.menu.company.list</field>
+        <field name="model">ir.ui.menu</field>
+        <field name="arch" type="xml">
+            <list string="App Menus (root level only)">
+                <field name="sequence" optional="hide"/>
+                <field name="name"/>
+                <field name="web_icon" string="Web Icon (only real Apps have this set)"/>
+                <field name="company_ids" widget="many2many_tags"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Action: ONLY shows root/app-level menus (parent_id = False) so the
+         admin can't accidentally restrict a random sub-menu that happens to
+         share the same name (e.g. CRM's "Sales" submenu vs the actual Sales
+         app root). This is the list the "Apps" icon on the left sidebar is
+         built from. -->
+    <record id="action_ir_ui_menu_company" model="ir.actions.act_window">
+        <field name="name">Company Wise Menu Access</field>
+        <field name="res_model">ir.ui.menu</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('parent_id', '=', False)]</field>
+        <field name="context">{}</field>
+    </record>
+
+    <record id="action_ir_ui_menu_company_view_list" model="ir.actions.act_window.view">
+        <field name="sequence" eval="1"/>
+        <field name="view_mode">list</field>
+        <field name="view_id" ref="view_ir_ui_menu_company_list"/>
+        <field name="act_window_id" ref="action_ir_ui_menu_company"/>
+    </record>
+
+    <record id="action_ir_ui_menu_company_view_form" model="ir.actions.act_window.view">
+        <field name="sequence" eval="2"/>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_ir_ui_menu_company_form"/>
+        <field name="act_window_id" ref="action_ir_ui_menu_company"/>
+    </record>
+
+    <!-- Menu entry directly under Settings -->
+    <menuitem id="menu_ir_ui_menu_company"
+              name="Company Wise Menu Access"
+              parent="base.menu_administration"
+              action="action_ir_ui_menu_company"
+              sequence="100"/>
+
+</odoo>

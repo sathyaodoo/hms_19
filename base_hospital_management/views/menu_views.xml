@@ -25,7 +25,7 @@
               sequence="6"/>
     <!--    Configuration menu-->
     <menuitem id="hospital_menu_configuration" name="Configuration" sequence="6"
-              groups="base_hospital_management.base_hospital_management_group_manager"
+              groups="base_hospital_management.base_hospital_management_group_manager,base_hospital_management.base_hospital_management_group_receptionist"
               parent="hospital_menu_root"/>
     <!--Reception dashboard action-->
     <record id="reception_dashboard_action" model="ir.actions.client">
