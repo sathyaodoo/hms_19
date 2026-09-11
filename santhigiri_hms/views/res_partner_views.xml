@@ -51,6 +51,12 @@
                        widget="binary"
                        invisible="nationality == 'indian'"/>
             </xpath>
+            
+            <xpath expr="//field[@name='aadhaar_no']" position="after">
+                <field name="current_registration_fee" readonly="1"/>
+                <field name="next_registration_due_date" readonly="1"/>
+                <field name="registration_fee_due" invisible="1"/>
+            </xpath>
 
             <!-- 3. Add allergy + existing conditions in Family and Insurance tab
                  (risk field already exists there — add our fields after it) -->
@@ -93,6 +99,63 @@
                         </group>
                     </group>
                 </page>
+            </xpath>
+
+            <!-- 7. Onboarding: Previous Medical History / Previous
+                 Prescriptions — added as a 4th sub-tab inside the
+                 EXISTING "Medical" tab (name="medicine"), alongside
+                 the system-generated Medicine/Lab Tests/Vaccine
+                 sub-tabs, since those are create="0" and cannot be
+                 used to log a patient's pre-existing history. -->
+            <xpath expr="//field[@name='notes']/parent::page" position="before">
+                <page string="Previous History"
+                      name="previous_history">
+                    <separator string="Previous Medical History"/>
+                    <field name="medical_history_ids">
+                        <list editable="bottom">
+                            <field name="date"/>
+                            <field name="condition"/>
+                            <field name="is_chronic"/>
+                            <field name="treated_at"/>
+                            <field name="treating_doctor"/>
+                            <field name="description"/>
+                            <field name="attachment" widget="binary" filename="attachment_name"/>
+                            <field name="attachment_name" invisible="1"/>
+                        </list>
+                    </field>
+                    <separator string="Previous Prescriptions"/>
+                    <field name="previous_prescription_ids">
+                        <list editable="bottom">
+                            <field name="date"/>
+                            <field name="medicine_name"/>
+                            <field name="medicine_id"/>
+                            <field name="dosage"/>
+                            <field name="frequency"/>
+                            <field name="duration"/>
+                            <field name="prescribed_by"/>
+                            <field name="note"/>
+                        </list>
+                    </field>
+                </page>
+            </xpath>
+            
+            <!-- 8. Registration fee: header button that opens the
+                 standalone wizard popup (registration_fee_wizard.py).
+                 type="action" + the action's external id, NOT
+                 type="object" + a partner method — this button does
+                 not touch res.partner at all; it only passes the
+                 current patient_id into the wizard's default context.
+                 Anchored on the existing "Add Appointment" button by
+                 @name (a valid, non-translatable inheritance
+                 selector). -->
+            <xpath expr="//button[@name='action_schedule']" position="after">
+                <button name="%(action_registration_fee_wizard)d"
+                        type="action"
+                        string="Generate Registration Invoice"
+                        class="btn-secondary"
+                        context="{'default_patient_id': id}"
+                        invisible="not patient_seq or patient_seq == 'New' or not registration_fee_due"
+                        groups="base_hospital_management.base_hospital_management_group_manager,base_hospital_management.base_hospital_management_group_receptionist"/>
             </xpath>
 
             <!-- 6. EMR Timeline button in the header -->

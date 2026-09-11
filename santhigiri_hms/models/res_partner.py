@@ -14,7 +14,7 @@ THIS FILE ADDS:
 """
 from odoo import api, fields, models
 from odoo.exceptions import ValidationError
-
+from dateutil.relativedelta import relativedelta
 
 class ResPartner(models.Model):
     _inherit = 'res.partner'
@@ -38,6 +38,19 @@ class ResPartner(models.Model):
                 rec.age = rec.age_manual
             else:
                 rec.age = False
+                
+    current_registration_fee = fields.Monetary(
+        string='Registration Fee', currency_field='currency_id',
+        compute='_compute_current_registration_fee',
+        help='The one-time registration fee currently configured under '
+             'Configuration > Registration Fee. Shown here for '
+             'reference; it is charged automatically when this patient '
+             'is first registered.')
+
+    def _compute_current_registration_fee(self):
+        fee = self.env['hospital.registration.fee'].sudo().get_current_fee()
+        for rec in self:
+            rec.current_registration_fee = fee
 
     # ── Nationality & ID ───────────────────────────────────────────────────────
     nationality = fields.Selection(
@@ -89,6 +102,23 @@ class ResPartner(models.Model):
         string='Existing Medical Conditions',
         help='Known chronic or pre-existing conditions',
     )
+
+    # ── Previous Medical History / Prescription Onboarding ───────────────────
+    # For a NEW patient who already has medical history/medication from
+    # before joining this hospital. Separate from prescription_ids /
+    # lab_test_ids (base module) because those are system-generated
+    # (create="0") from actual OP/IP visits here and cannot be used to
+    # log external, pre-existing history.
+    medical_history_ids = fields.One2many(
+        'patient.medical.history', 'patient_id',
+        string='Previous Medical History',
+        help="Patient's medical history from before joining this "
+             "hospital, captured during onboarding")
+    previous_prescription_ids = fields.One2many(
+        'patient.previous.prescription', 'patient_id',
+        string='Previous Prescriptions',
+        help='Medicines the patient was already taking before joining '
+             'this hospital, captured during onboarding')
 
     # ── Santhigiri-Specific Classification ────────────────────────────────────
     vulnerability = fields.Selection(
@@ -253,6 +283,140 @@ class ResPartner(models.Model):
         return self.env.ref(
             'base_hospital_management.action_report_patient_card'
         ).report_action(self)  # pass self — not None
+
+    # ── Registration Fee — recurring every 3 months ────────────────────────────
+    # Same idea as HospitalOutpatient.create_invoice() (category-based
+    # Consultation Fee): fetch the configured amount and raise an
+    # invoice for it. Unlike a one-time charge, Registration Fee now
+    # RENEWS every 3 months, for every patient, on a rolling basis:
+    #   - First charge: automatic, the moment a genuinely new patient
+    #     is created (create() below) — no click needed.
+    #   - Renewal: once 3 months have passed since the last
+    #     registration invoice, "due" becomes true again. The
+    #     "Generate Registration Invoice" button on the patient form
+    #     only becomes visible at that point (see res_partner_views.xml
+    #     and registration_fee_due below) — staff click it, a new
+    #     invoice is raised, and the 3-month clock resets from that
+    #     new invoice's date. This repeats indefinitely, for every
+    #     patient, without any cron job — it is purely computed from
+    #     "how long ago was the last registration invoice for THIS
+    #     patient", checked fresh every time the form loads or a new
+    #     patient is created.
+    #
+    # Still zero new STORED fields on res.partner — "when was the last
+    # charge, and is a new one due" is answered by SEARCHING
+    # account.move (ref starts with "Registration Fee"), not by
+    # reading a stored flag. The three fields below
+    # (last_registration_invoice_date, next_registration_due_date,
+    # registration_fee_due) are all store=False computes — pure
+    # display/logic, no schema change, no ALTER TABLE.
+    last_registration_invoice_date = fields.Date(
+        string='Last Registration Fee Date',
+        compute='_compute_registration_fee_status',
+        help='Date the most recent registration fee invoice was raised '
+             'for this patient')
+    next_registration_due_date = fields.Date(
+        string='Next Registration Fee Due',
+        compute='_compute_registration_fee_status',
+        help='Registration fee renews every 3 months from the last '
+             'invoice date')
+    registration_fee_due = fields.Boolean(
+        string='Registration Fee Due',
+        compute='_compute_registration_fee_status',
+        help='True if this patient has never been charged a '
+             'registration fee, or if 3 months have passed since the '
+             'last one — controls when the "Generate Registration '
+             'Invoice" button appears')
+
+    def _compute_registration_fee_status(self):
+        for rec in self:
+            last_move = rec._get_last_registration_invoice()
+            if last_move and last_move.invoice_date:
+                rec.last_registration_invoice_date = last_move.invoice_date
+                rec.next_registration_due_date = (
+                    last_move.invoice_date + relativedelta(months=3))
+            else:
+                rec.last_registration_invoice_date = False
+                rec.next_registration_due_date = False
+            rec.registration_fee_due = rec._is_registration_fee_due()
+
+    def _get_last_registration_invoice(self):
+        """Most recent registration-fee invoice for this patient, if
+        any — the single source of truth for "when was it last
+        charged", used by both the automatic create()-time charge and
+        the manual button/wizard, so they can never disagree."""
+        self.ensure_one()
+        return self.env['account.move'].sudo().search([
+            ('partner_id', '=', self.id),
+            ('move_type', '=', 'out_invoice'),
+            ('ref', 'like', 'Registration Fee%'),
+        ], order='invoice_date desc, id desc', limit=1)
+
+    def _is_registration_fee_due(self):
+        """True if never charged, or 3+ months since the last charge."""
+        self.ensure_one()
+        last_move = self._get_last_registration_invoice()
+        if not last_move or not last_move.invoice_date:
+            return True
+        return fields.Date.today() >= last_move.invoice_date + relativedelta(months=3)
+
+    def _build_registration_fee_ref(self, on_date=None):
+        """One place that builds the invoice ref, so the automatic
+        charge and the manual wizard always produce the same format:
+        'Registration Fee - <patient code> - <date>'. The date suffix
+        (new — the one-time version used just the patient code) is
+        what lets MULTIPLE registration invoices coexist per patient
+        over time, one per renewal period."""
+        self.ensure_one()
+        on_date = on_date or fields.Date.today()
+        return 'Registration Fee - %s - %s' % (
+            self.patient_seq or self.name, on_date)
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        records = super().create(vals_list)
+        for rec in records:
+            # Same signal the base module's own Patient menu action
+            # already relies on (see res_partner_action's domain:
+            # patient_seq not in ['New', 'Employee', 'User']) to tell
+            # a genuine patient apart from every other kind of
+            # res.partner record (companies, vendors, doctors' linked
+            # partner, etc.) that also flows through this create().
+            if rec.is_company or rec.patient_seq in (False, 'New', 'Employee', 'User'):
+                continue
+            rec._charge_registration_fee_if_due()
+        return records
+
+    def _charge_registration_fee_if_due(self):
+        """Raises the Registration Fee invoice for this patient if one
+        is currently due (never charged, or 3+ months since the last
+        one). Wrapped so a billing hiccup can never block patient
+        registration/save."""
+        self.ensure_one()
+        try:
+            if not self._is_registration_fee_due():
+                return
+            fee = self.env['hospital.registration.fee'].sudo().get_current_fee()
+            if not fee:
+                return  # no fee configured yet — nothing to charge
+            self.env['account.move'].sudo().create({
+                'move_type': 'out_invoice',
+                'partner_id': self.id,
+                'invoice_date': fields.Date.today(),
+                'ref': self._build_registration_fee_ref(),
+                'invoice_line_ids': [(0, 0, {
+                    'name': 'Patient Registration Fee',
+                    'quantity': 1,
+                    'price_unit': fee,
+                })],
+            })
+        except Exception:
+            # Registration must never fail because billing had a
+            # problem (e.g. accounting not fully configured yet).
+            # The manual "Generate Registration Invoice" button
+            # remains available as a fallback for this patient once
+            # registration_fee_due is true again.
+            pass
 
 
 class SanthigiriAllergy(models.Model):

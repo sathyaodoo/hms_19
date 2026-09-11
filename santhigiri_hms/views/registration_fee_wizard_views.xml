@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_registration_fee_wizard_form" model="ir.ui.view">
+        <field name="name">santhigiri.registration.fee.wizard.form</field>
+        <field name="model">santhigiri.registration.fee.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Generate Registration Invoice">
+                <group>
+                    <field name="patient_id"/>
+                    <field name="currency_id" invisible="1"/>
+                    <field name="fee_amount"/>
+                    <field name="note" placeholder="Registration Fee - (patient code) — leave blank to use the default"/>
+                </group>
+                <footer>
+                    <button name="action_generate_invoice"
+                            type="object"
+                            string="Generate Invoice"
+                            class="btn-primary"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_registration_fee_wizard" model="ir.actions.act_window">
+        <field name="name">Generate Registration Invoice</field>
+        <field name="res_model">santhigiri.registration.fee.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+</odoo>

@@ -39,7 +39,6 @@ class HospitalOutpatient(models.Model):
 
     patient_category = fields.Selection([
         ('general', 'General'),
-        ('vip', 'VIP'),
         ('senior_citizen', 'Senior Citizen'),
         ('bpl', 'BPL / Karunyam'),
         ('payward', 'Pay Ward'),
@@ -162,11 +161,21 @@ class HospitalOutpatient(models.Model):
         self.outcome = 'inpatient'
         self.state = 'inpatient'
 
+        # hospital.outpatient.doctor_id -> doctor.allocation (a
+        # scheduling slot), NOT hr.employee. hospital.inpatient's
+        # attending_doctor_id needs the actual hr.employee, which is
+        # doctor.allocation's OWN doctor_id field. Using
+        # self.doctor_id.id directly (as this used to) passed the
+        # allocation record's id into a field expecting an employee
+        # id — silently linking whichever employee happened to share
+        # that same numeric id, instead of raising a clear error.
+        attending_doctor = self.doctor_id.doctor_id if self.doctor_id else False
+
         # Create IP record directly
         ip = self.env['hospital.inpatient'].sudo().create({
             'patient_id': self.patient_id.id,
             'reason': self.reason or self.chief_complaint or '',
-            'attending_doctor_id': self.doctor_id.id if self.doctor_id else False,
+            'attending_doctor_id': attending_doctor.id if attending_doctor else False,
             'type_admission': 'routine',
         })
 

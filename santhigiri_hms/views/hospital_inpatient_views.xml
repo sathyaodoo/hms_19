@@ -68,7 +68,7 @@
 
             <!-- 6. New tabs after Nursing Plan -->
             <xpath expr="//page[@name='Nursing Plan']" position="after">
-                <page string="Treatment Plan (Procedures)" name="treatment_plan">
+                <!--<page string="Treatment Plan (Procedures)" name="treatment_plan">
                     <field name="treatment_plan_ids">
                         <list string="Treatment Plans">
                             <field name="procedure_id" string="Procedure / Therapy"/>
@@ -81,7 +81,7 @@
                             <field name="state" widget="badge"/>
                         </list>
                     </field>
-                </page>
+                </page>-->
 
                 <page string="Medication Plan (Medicines)" name="medication_plan">
                     <button name="action_dispense_ip_medicines"
@@ -177,6 +177,21 @@
                         string="Print Discharge Summary"
                         invisible="state not in ['invoice','dis']"
                         icon="fa-file-text-o"/>
+            </xpath>
+            
+            <!-- IP + Daily Procedures: same wizard concept as the OP
+                 side's "OP + Daily Procedures" button. Anchored on the
+                 existing "Create Test" button by @name (a valid,
+                 non-translatable inheritance selector). Only shown
+                 once the patient is actually admitted (state == 'admit'),
+                 same visibility rule already used on "Create Test". -->
+            <xpath expr="//button[@name='action_create_lab_test']" position="after">
+                <button name="action_ip_daily_procedures"
+                        string="IP + Daily Procedures"
+                        class="btn btn-warning"
+                        type="object"
+                        invisible="state != 'admit'"
+                        groups="base_hospital_management.base_hospital_management_group_manager,base_hospital_management.base_hospital_management_group_doctor,base_hospital_management.base_hospital_management_group_receptionist"/>
             </xpath>
 
            

@@ -14,7 +14,7 @@ class HospitalFeeMaster(models.Model):
 
     patient_category = fields.Selection([
         ('general', 'General'),
-        ('vip', 'VIP'),
+        #('vip', 'VIP'),
         ('senior_citizen', 'Senior Citizen'),
         ('bpl', 'BPL / Karunyam'),
         ('payward', 'Pay Ward'),

@@ -26,7 +26,12 @@ class HospitalIntern(models.Model):
     college_id = fields.Char(string='College / Institution', required=True)
     college_register_no = fields.Char(string='College Register No.', required=True)
     university_reg_no = fields.Char(string='University Registration No.', required=True)
-    medical_council_reg_no = fields.Char(string='Medical Council Reg. No.')
+    medical_council_reg_no = fields.Char(string='Medical Council Reg. No.', required=True)
+    provisional_register_no = fields.Char(
+        string='Provisional Register No.', required=True,
+        help='Provisional Registration Number issued by the State '
+             'Medical Council for the internship period, before '
+             'permanent registration is granted on completion')
     batch = fields.Char(string='Batch / Year of Study')
     course = fields.Selection([
         ('bams', 'BAMS (Bachelor of Ayurvedic Medicine & Surgery)'),
