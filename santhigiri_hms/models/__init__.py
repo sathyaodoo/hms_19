@@ -4,7 +4,6 @@ from . import res_partner
 #from . import res_config_settings
 from . import patient_medical_history
 from . import patient_previous_prescription
-from . import registration_fee_wizard
 from . import hospital_registration_fee
 from . import fee_master
 from . import hr_employee
@@ -34,4 +33,3 @@ from . import lab_test_master
 from . import patient_emr
 from . import op_assessment
 from . import op_reassessment
-

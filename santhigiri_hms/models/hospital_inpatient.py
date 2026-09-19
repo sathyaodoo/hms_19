@@ -56,9 +56,15 @@ class HospitalInpatient(models.Model):
     # ── Room validation ────────────────────────────────────────────────────────
     @api.constrains('room_id', 'state')
     def _check_room_availability(self):
+    
         for rec in self:
             if not rec.room_id or rec.state in ('draft', 'dis', 'cancel'):
                 continue
+            if rec.room_id.state == 'cleaning':
+                raise ValidationError(
+                    'Room "' + rec.room_id.name + '" is in Under Cleaning. '
+                    'Please select a different room.'
+                )
             conflict = self.search([
                 ('room_id', '=', rec.room_id.id),
                 ('state', 'in', ('reserve', 'admit', 'invoice')),
@@ -93,17 +99,19 @@ class HospitalInpatient(models.Model):
                     self.env['hospital.bed'].browse(new_bed_id).sudo().write({'state': 'not'})
         return super().write(vals)
     
-    # ── Reserve ───────────────────────────────────────────────────────────────
     def action_reserve(self):
-        """The base module's action_reserve() marks the Bed as 'not'
-        (Unavailable) while marking the Room as 'reserve' — an
-        inconsistency that also broke action_admit() below, since a
-        bed that is only "reserved" would already read as unavailable
-        and fail the pre-admit check. This override calls the base
-        logic first (unchanged) and then corrects the Bed state to
-        'reserve', bringing it in line with how Room already behaves,
-        and with the Reserve/Under Cleaning stages added on
-        hospital.bed."""
+        
+        for rec in self:
+            if rec.bed_id and rec.bed_id.state == 'cleaning':
+                raise UserError(
+                    'Bed "' + rec.bed_id.name + '" is in Under Cleaning. '
+                    'Please select a different bed.'
+                )
+            if rec.room_id and rec.room_id.state == 'cleaning':
+                raise UserError(
+                    'Room "' + rec.room_id.name + '" is in Under Cleaning. '
+                    'Please select a different room.'
+                )
         res = super().action_reserve()
         for rec in self:
             if rec.bed_id:
@@ -336,10 +344,18 @@ class HospitalInpatient(models.Model):
     def _check_bed_availability(self):
         """Same concept as _check_room_availability() above: a bed that
         is already reserved/admitted/invoiced for another inpatient
-        cannot be assigned to a second one."""
+        cannot be assigned to a second one. Also blocks assigning a bed
+        that is currently Under Cleaning — same concept, same message
+        style as the "already occupied" check, just a different reason
+        the bed isn't available for a new admission right now."""
         for rec in self:
             if not rec.bed_id or rec.state in ('draft', 'dis', 'cancel'):
                 continue
+            if rec.bed_id.state == 'cleaning':
+                raise ValidationError(
+                    'Bed "' + rec.bed_id.name + '" is in Under Cleaning. '
+                    'Please select a different bed.'
+                )
             conflict = self.search([
                 ('bed_id', '=', rec.bed_id.id),
                 ('state', 'in', ('reserve', 'admit', 'invoice')),

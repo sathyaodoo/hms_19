@@ -1,16 +1,4 @@
 # -*- coding: utf-8 -*-
-"""
-hospital.registration.fee
-
-Same idea as hospital.fee.master (the existing Consultation Fee
-Master): a small, standalone config model, editable under
-Configuration, holding the amount to charge. Kept as its own model —
-NOT a field on res.company — because a brand-new model gets its own
-table created cleanly on install, whereas this environment has
-repeatedly failed to apply new fields onto EXISTING models
-(res.partner, res.company). A new model sidesteps that failure mode
-entirely.
-"""
 from odoo import api, fields, models
 
 
@@ -21,6 +9,13 @@ class HospitalRegistrationFee(models.Model):
 
     name = fields.Char(default='Standard Registration Fee', required=True)
     amount = fields.Monetary(string='Registration Fee', required=True)
+    renewal_months = fields.Integer(
+        string='Renewal Period (Months)', default=3, required=True,
+        help='Registration fee becomes due again this many months '
+             'after the last invoice. Configurable here — NOT '
+             'hardcoded in Python — so changing how often patients '
+             'are re-charged never needs a code deployment, only an '
+             'edit to this record.')
     currency_id = fields.Many2one(
         'res.currency', default=lambda s: s.env.company.currency_id)
     active = fields.Boolean(default=True)
@@ -32,3 +27,15 @@ class HospitalRegistrationFee(models.Model):
         charge is raised — see res_partner.py)."""
         rec = self.search([('active', '=', True)], order='id desc', limit=1)
         return rec.amount if rec else 0.0
+
+    @api.model
+    def get_renewal_months(self):
+        """Configurable renewal interval, in months. Used everywhere
+        instead of a hardcoded relativedelta(months=3) — see
+        res_partner.py's _compute_registration_fee_status() and
+        _is_registration_fee_due(). Falls back to 3 only if no
+        Registration Fee record has been configured yet at all
+        (matches the original hardcoded default, so behavior is
+        unchanged for anyone who hasn't touched this new field)."""
+        rec = self.search([('active', '=', True)], order='id desc', limit=1)
+        return rec.renewal_months if rec and rec.renewal_months else 3

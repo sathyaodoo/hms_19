@@ -31,6 +31,7 @@ class LabTestResult(models.Model):
                 continue
             try:
                 r = float(rec.result.replace(',', '.'))
+                matched = False
                 for sep in ['–', '-', ' to ', ' - ']:
                     if sep in rec.normal:
                         parts = rec.normal.split(sep)
@@ -38,14 +39,21 @@ class LabTestResult(models.Model):
                         hi = float(parts[1].strip())
                         if not (lo <= r <= hi):
                             rec.is_abnormal = True
+                        matched = True
                         break
-                if rec.normal.strip().startswith('<'):
+                if not matched and rec.normal.strip().startswith('<'):
                     threshold = float(rec.normal.replace('<', '').strip())
                     if r >= threshold:
                         rec.is_abnormal = True
-                elif rec.normal.strip().startswith('>'):
+                    matched = True
+                elif not matched and rec.normal.strip().startswith('>'):
                     threshold = float(rec.normal.replace('>', '').strip())
                     if r <= threshold:
+                        rec.is_abnormal = True
+                    matched = True
+                if not matched:
+                    normal_num = float(rec.normal.replace(',', '.').strip())
+                    if r != normal_num:
                         rec.is_abnormal = True
             except (ValueError, AttributeError):
                 pass
@@ -59,10 +67,19 @@ class LabTestResult(models.Model):
         return records
 
     def write(self, vals):
+        """Only notify the doctor when a result NEWLY becomes
+        abnormal — i.e. it was normal (or unset) before this write and
+        is abnormal after. Without this check, every subsequent edit
+        to an already-abnormal result (even a typo fix that doesn't
+        change whether it's abnormal) re-posted the same alert to the
+        patient's chatter, creating duplicate noise."""
+        was_abnormal = {}
+        if 'result' in vals or 'normal' in vals:
+            was_abnormal = {rec.id: rec.is_abnormal for rec in self}
         res = super().write(vals)
         if 'result' in vals or 'normal' in vals:
             for rec in self:
-                if rec.is_abnormal:
+                if rec.is_abnormal and not was_abnormal.get(rec.id):
                     rec._notify_doctor_abnormal()
         return res
 

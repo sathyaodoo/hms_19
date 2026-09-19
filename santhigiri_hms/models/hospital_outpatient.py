@@ -161,14 +161,7 @@ class HospitalOutpatient(models.Model):
         self.outcome = 'inpatient'
         self.state = 'inpatient'
 
-        # hospital.outpatient.doctor_id -> doctor.allocation (a
-        # scheduling slot), NOT hr.employee. hospital.inpatient's
-        # attending_doctor_id needs the actual hr.employee, which is
-        # doctor.allocation's OWN doctor_id field. Using
-        # self.doctor_id.id directly (as this used to) passed the
-        # allocation record's id into a field expecting an employee
-        # id — silently linking whichever employee happened to share
-        # that same numeric id, instead of raising a clear error.
+        
         attending_doctor = self.doctor_id.doctor_id if self.doctor_id else False
 
         # Create IP record directly
@@ -215,3 +208,39 @@ class HospitalOutpatient(models.Model):
                         'summary': f'OP observation: {rec.op_reference} — {rec.provisional_diagnosis or rec.reason or ""}',
                     })
         return res
+
+    def action_dispense_op_prescription(self):
+        
+        self.ensure_one()
+        if not self.prescription_ids:
+            raise UserError('No medicines in Prescription.')
+        order_lines = []
+        for presc in self.prescription_ids:
+            if not presc.medicine_id:
+                continue
+            product = self.env['product.product'].sudo().search(
+                [('product_tmpl_id', '=', presc.medicine_id.id)], limit=1)
+            if not product:
+                continue
+            order_lines.append((0, 0, {
+                'product_id': product.id,
+                'product_uom_qty': presc.quantity or 1,
+                'price_unit': product.list_price,
+                'name': presc.medicine_id.name,
+            }))
+        if not order_lines:
+            raise UserError('No valid medicines found in Prescription.')
+        sale_order = self.env['sale.order'].sudo().create({
+            'partner_id': self.patient_id.id,
+            'dispensing_category': 'op_dispensing',
+            'outpatient_id': self.id,
+            'order_line': order_lines,
+        })
+        sale_order.action_confirm()
+        return {
+            'type': 'ir.actions.act_window',
+            'res_model': 'sale.order',
+            'res_id': sale_order.id,
+            'view_mode': 'form',
+            'name': 'OP Prescription Dispensing',
+        }

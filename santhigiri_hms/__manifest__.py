@@ -28,7 +28,6 @@
         'views/product_template_views.xml',
         'views/lab_test_views.xml',
         'views/hr_employee_views.xml',
-        'views/registration_fee_wizard_views.xml',
         'views/res_partner_views.xml',
         'views/fee_master_views.xml',
         'views/hospital_registration_fee_views.xml',

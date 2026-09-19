@@ -44,6 +44,23 @@
                 <field name="duration_days"/>
             </xpath>
 
+            <!-- Send to Pharmacy on the Prescription tab too — same
+                 "Send to Pharmacy" concept as Medication Plan's own
+                 button (action_dispense_op_medicines, below), just
+                 sourced from prescription_ids (base module's
+                 prescription.line) instead of medication_plan_ids.
+                 Placed right before the prescription_ids field so it
+                 renders above the list, matching the Medication Plan
+                 tab's button placement exactly. -->
+            <xpath expr="//field[@name='prescription_ids']" position="before">
+                <button name="action_dispense_op_prescription"
+                        type="object"
+                        string="💊 Send to Pharmacy"
+                        class="btn btn-primary mb-2"
+                        groups="base_hospital_management.base_hospital_management_group_doctor,base_hospital_management.base_hospital_management_group_manager,santhigiri_hms.group_rmo"
+                        confirm="Send all Prescription medicines to the OP Pharmacy for dispensing?"/>
+            </xpath>
+
             <xpath expr="//page[@name='Prescription']" position="after">
                 <page string="Case Sheet" name="case_sheet">
                     <group>
@@ -106,6 +123,7 @@
                         </list>
                     </field>
                 </page>
+               
 
                 <page string="Observing Interns" name="interns">
                     <field name="observer_intern_ids" widget="many2many_tags"/>

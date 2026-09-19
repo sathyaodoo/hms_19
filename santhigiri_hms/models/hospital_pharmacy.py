@@ -52,3 +52,9 @@ class SaleOrder(models.Model):
     inpatient_id = fields.Many2one(
         'hospital.inpatient', string='IP Admission',
         help='Set for IP dispensing orders')
+    outpatient_id = fields.Many2one(
+        'hospital.outpatient', string='OP Visit',
+        help='Set for OP dispensing orders raised from a visit\'s own '
+             'Medication Plan tab (distinct from the generic pharmacy '
+             'dashboard walk-in flow, which also tags op_dispensing '
+             'but has no specific visit to link back to)')
