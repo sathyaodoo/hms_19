@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Registration Fee config — same pattern as Consultation Fee
+         Master (hospital.fee.master), just simpler: one flat amount
+         instead of a category matrix. -->
+    <record id="view_registration_fee_list" model="ir.ui.view">
+        <field name="name">hospital.registration.fee.list</field>
+        <field name="model">hospital.registration.fee</field>
+        <field name="arch" type="xml">
+            <list string="Registration Fee" editable="bottom">
+                <field name="name"/>
+                <field name="amount" widget="monetary"/>
+                <field name="renewal_months" string="Renews Every (Months)"/>
+                <field name="active"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_registration_fee_form" model="ir.ui.view">
+        <field name="name">hospital.registration.fee.form</field>
+        <field name="model">hospital.registration.fee</field>
+        <field name="arch" type="xml">
+            <form string="Registration Fee">
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="amount" widget="monetary"/>
+                        <field name="renewal_months" string="Renewal Period (Months)"/>
+                        <field name="currency_id" invisible="1"/>
+                        <field name="active"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+</odoo>

@@ -12,7 +12,8 @@
     ''',
     'author': 'Santhigiri HMS Implementation Team',
     'category': 'Healthcare',
-    'depends': ['base_hospital_management', 'purchase', 'stock', 'mail', 'website'],
+    'depends': ['base_hospital_management', 'purchase', 'stock', 'mail',
+                'website', 'account'],
     'data': [
         # Security (load first)
         'security/santhigiri_groups.xml',
@@ -23,11 +24,13 @@
         'data/ir_cron_data.xml',
         # Views
         'views/patient_room_views.xml',
+        'views/hospital_bed_views.xml',
         'views/product_template_views.xml',
         'views/lab_test_views.xml',
         'views/hr_employee_views.xml',
         'views/res_partner_views.xml',
         'views/fee_master_views.xml',
+        'views/hospital_registration_fee_views.xml',
         'views/hospital_outpatient_views.xml',
         'views/hospital_inpatient_views.xml',
         'views/hospital_casualty_views.xml',

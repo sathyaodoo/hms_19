@@ -56,9 +56,15 @@ class HospitalInpatient(models.Model):
     # ── Room validation ────────────────────────────────────────────────────────
     @api.constrains('room_id', 'state')
     def _check_room_availability(self):
+    
         for rec in self:
             if not rec.room_id or rec.state in ('draft', 'dis', 'cancel'):
                 continue
+            if rec.room_id.state == 'cleaning':
+                raise ValidationError(
+                    'Room "' + rec.room_id.name + '" is in Under Cleaning. '
+                    'Please select a different room.'
+                )
             conflict = self.search([
                 ('room_id', '=', rec.room_id.id),
                 ('state', 'in', ('reserve', 'admit', 'invoice')),
@@ -71,7 +77,7 @@ class HospitalInpatient(models.Model):
                     + 'Please select a different room.'
                 )
 
-    # ── write() — update room states on room change ────────────────────────────
+    # ── write() — update room/bed states on room/bed change ────────────────────
     def write(self, vals):
         if 'room_id' in vals:
             for rec in self:
@@ -82,7 +88,35 @@ class HospitalInpatient(models.Model):
                         rec.state in ('reserve', 'admit', 'invoice')):
                     old_room.sudo().write({'state': 'avail'})
                     self.env['patient.room'].browse(new_room_id).sudo().write({'state': 'not'})
+        if 'bed_id' in vals:
+            for rec in self:
+                old_bed = rec.bed_id
+                new_bed_id = vals.get('bed_id')
+                if (old_bed and new_bed_id and
+                        old_bed.id != new_bed_id and
+                        rec.state in ('reserve', 'admit', 'invoice')):
+                    old_bed.sudo().write({'state': 'avail'})
+                    self.env['hospital.bed'].browse(new_bed_id).sudo().write({'state': 'not'})
         return super().write(vals)
+    
+    def action_reserve(self):
+        
+        for rec in self:
+            if rec.bed_id and rec.bed_id.state == 'cleaning':
+                raise UserError(
+                    'Bed "' + rec.bed_id.name + '" is in Under Cleaning. '
+                    'Please select a different bed.'
+                )
+            if rec.room_id and rec.room_id.state == 'cleaning':
+                raise UserError(
+                    'Room "' + rec.room_id.name + '" is in Under Cleaning. '
+                    'Please select a different room.'
+                )
+        res = super().action_reserve()
+        for rec in self:
+            if rec.bed_id:
+                rec.bed_id.state = 'reserve'
+        return res
 
     # ── Admit ──────────────────────────────────────────────────────────────────
     def action_admit(self):
@@ -93,7 +127,7 @@ class HospitalInpatient(models.Model):
                     'Current status: ' + rec.room_id.state + '. '
                     'Please select an available room.'
                 )
-            if rec.bed_id and rec.bed_id.state != 'avail':
+            if rec.bed_id and rec.bed_id.state not in ('avail', 'reserve'):   # ← was: != 'avail'
                 raise UserError('Bed "' + rec.bed_id.name + '" is not available.')
             if not rec.consent_form_ids:
                 rec.message_post(
@@ -110,7 +144,11 @@ class HospitalInpatient(models.Model):
     # ── Discharge ──────────────────────────────────────────────────────────────
     def action_discharge(self):
         if self.bed_id:
-            self.bed_id.state = 'avail'
+            self.bed_id.sudo().write({'state': 'cleaning'})
+            self.bed_id.housekeeping_notes = (
+                'Cleaning required after discharge of ' + self.patient_id.name +
+                ' (' + self.name + ') on ' + str(fields.Date.today())
+            )
         if self.room_id:
             self.room_id.sudo().write({'state': 'cleaning'})
             self.room_id.housekeeping_notes = (
@@ -267,10 +305,68 @@ class HospitalInpatient(models.Model):
             'domain': [('invoice_origin', '=', self.name)],
             'context': {'create': False},
         }
+        
+    def action_ip_daily_procedures(self):
+        """IP + Daily Procedures — same wizard concept as the OP
+        side's "OP + Daily Procedures" button
+        (hospital.outpatient.action_outcome_procedures in
+        hospital_outpatient.py): opens the exact same
+        hospital.procedure.prescription popup form, just pre-filled
+        from this IP admission (inpatient_id) instead of an OP visit
+        (outpatient_id) — so an admitted patient gets identical
+        Completed/Remaining/Progress % session tracking, without
+        needing to route everything through a separate OP visit
+        first. attending_doctor_id is already an hr.employee directly
+        on hospital.inpatient (unlike hospital.outpatient.doctor_id,
+        which points at doctor.allocation), so it can be passed
+        straight through as default_doctor_id with no extra lookup."""
+        self.ensure_one()
+        return {
+            'name': 'Create Procedure Prescription',
+            'type': 'ir.actions.act_window',
+            'res_model': 'hospital.procedure.prescription',
+            'view_mode': 'form',
+            'context': {
+                'default_inpatient_id': self.id,
+                'default_patient_id': self.patient_id.id,
+                'default_doctor_id': self.attending_doctor_id.id,
+            },
+            'target': 'new',
+        }
 
     def action_print_discharge_summary(self):
         return self.env.ref(
             'santhigiri_hms.action_report_discharge_summary').report_action(self)
+            
+            
+    # ── Bed validation ─────────────────────────────────────────────────────────
+    @api.constrains('bed_id', 'state')
+    def _check_bed_availability(self):
+        """Same concept as _check_room_availability() above: a bed that
+        is already reserved/admitted/invoiced for another inpatient
+        cannot be assigned to a second one. Also blocks assigning a bed
+        that is currently Under Cleaning — same concept, same message
+        style as the "already occupied" check, just a different reason
+        the bed isn't available for a new admission right now."""
+        for rec in self:
+            if not rec.bed_id or rec.state in ('draft', 'dis', 'cancel'):
+                continue
+            if rec.bed_id.state == 'cleaning':
+                raise ValidationError(
+                    'Bed "' + rec.bed_id.name + '" is in Under Cleaning. '
+                    'Please select a different bed.'
+                )
+            conflict = self.search([
+                ('bed_id', '=', rec.bed_id.id),
+                ('state', 'in', ('reserve', 'admit', 'invoice')),
+                ('id', '!=', rec.id),
+            ], limit=1)
+            if conflict:
+                raise ValidationError(
+                    'Bed "' + rec.bed_id.name + '" is already occupied by '
+                    + conflict.patient_id.name + ' (' + conflict.name + '). '
+                    + 'Please select a different bed.'
+                )
 
 
 class HospitalRoomTransfer(models.Model):

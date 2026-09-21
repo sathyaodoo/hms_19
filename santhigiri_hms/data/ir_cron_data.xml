@@ -50,5 +50,27 @@ if pharmacist_group:
             <field name="interval_type">days</field>
             <field name="active">True</field>
         </record>
+
+        <!-- Registration Fee renewal cron — runs daily, but ONLY
+             checks and reminds. It never creates an invoice; the
+             renewal invoice is raised exclusively via the "Generate
+             Registration Invoice" button on the patient form
+             (action_generate_registration_invoice) or automatically
+             on first-time patient creation (see res_partner.py). The
+             renewal interval itself lives in hospital.registration.fee
+             (Configuration > Registration Fee), not here — this cron
+             just calls the check daily; how many months apart
+             renewals happen is fully configurable without touching
+             this file or this cron. -->
+        <record id="cron_check_due_registration_fees" model="ir.cron">
+            <field name="name">HMS: Check Due Patient Registration Fees (Reminder Only)</field>
+            <field name="model_id" ref="base.model_res_partner"/>
+            <field name="state">code</field>
+            <field name="code">model._cron_check_due_registration_fees()</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+            <field name="active">True</field>
+        </record>
+
     </data>
 </odoo>

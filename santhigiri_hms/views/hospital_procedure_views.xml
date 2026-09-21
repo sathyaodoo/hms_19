@@ -26,7 +26,12 @@
                         <group string="Patient">
                             <field name="patient_id"/>
                             <field name="patient_seq" readonly="1"/>
-                            <field name="op_reference" readonly="1"/>
+                            <field name="outpatient_id" invisible="1"/>
+                            <field name="inpatient_id" invisible="1"/>
+                            <field name="op_reference" readonly="1"
+                                   invisible="not outpatient_id"/>
+                            <field name="ip_reference" readonly="1"
+                                   invisible="not inpatient_id"/>
                         </group>
                         <group string="Prescription Details">
                             <field name="doctor_id"/>
@@ -36,6 +41,11 @@
                             <field name="billing_mode"/>
                             <field name="session_rate" widget="monetary"/>
                         </group>
+                    </group>
+                    <group string="Session Progress">
+                        <field name="completed_sessions" readonly="1"/>
+                        <field name="pending_sessions" readonly="1"/>
+                        <field name="progress_pct" widget="progressbar" readonly="1"/>
                     </group>
                     <group string="Therapist Assignment (by RMO)">
                         <field name="rmo_id"/>
@@ -92,6 +102,7 @@
                 <field name="procedure_id"/>
                 <field name="no_of_sessions"/>
                 <field name="completed_sessions"/>
+                <field name="pending_sessions" string="Remaining"/>
                 <field name="progress_pct" widget="progressbar"/>
                 <field name="therapist_ids" widget="many2many_tags"/>
                 <field name="state" widget="badge"/>

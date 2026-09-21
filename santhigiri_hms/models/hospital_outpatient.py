@@ -39,7 +39,6 @@ class HospitalOutpatient(models.Model):
 
     patient_category = fields.Selection([
         ('general', 'General'),
-        ('vip', 'VIP'),
         ('senior_citizen', 'Senior Citizen'),
         ('bpl', 'BPL / Karunyam'),
         ('payward', 'Pay Ward'),
@@ -162,11 +161,14 @@ class HospitalOutpatient(models.Model):
         self.outcome = 'inpatient'
         self.state = 'inpatient'
 
+        
+        attending_doctor = self.doctor_id.doctor_id if self.doctor_id else False
+
         # Create IP record directly
         ip = self.env['hospital.inpatient'].sudo().create({
             'patient_id': self.patient_id.id,
             'reason': self.reason or self.chief_complaint or '',
-            'attending_doctor_id': self.doctor_id.id if self.doctor_id else False,
+            'attending_doctor_id': attending_doctor.id if attending_doctor else False,
             'type_admission': 'routine',
         })
 
@@ -206,3 +208,39 @@ class HospitalOutpatient(models.Model):
                         'summary': f'OP observation: {rec.op_reference} — {rec.provisional_diagnosis or rec.reason or ""}',
                     })
         return res
+
+    def action_dispense_op_prescription(self):
+        
+        self.ensure_one()
+        if not self.prescription_ids:
+            raise UserError('No medicines in Prescription.')
+        order_lines = []
+        for presc in self.prescription_ids:
+            if not presc.medicine_id:
+                continue
+            product = self.env['product.product'].sudo().search(
+                [('product_tmpl_id', '=', presc.medicine_id.id)], limit=1)
+            if not product:
+                continue
+            order_lines.append((0, 0, {
+                'product_id': product.id,
+                'product_uom_qty': presc.quantity or 1,
+                'price_unit': product.list_price,
+                'name': presc.medicine_id.name,
+            }))
+        if not order_lines:
+            raise UserError('No valid medicines found in Prescription.')
+        sale_order = self.env['sale.order'].sudo().create({
+            'partner_id': self.patient_id.id,
+            'dispensing_category': 'op_dispensing',
+            'outpatient_id': self.id,
+            'order_line': order_lines,
+        })
+        sale_order.action_confirm()
+        return {
+            'type': 'ir.actions.act_window',
+            'res_model': 'sale.order',
+            'res_id': sale_order.id,
+            'view_mode': 'form',
+            'name': 'OP Prescription Dispensing',
+        }

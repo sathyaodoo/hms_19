@@ -32,11 +32,14 @@ class LabMedicineLine(models.Model):
                                   help='Lab test corresponds to the medicine')
     test_id = fields.Many2one('lab.test', string='Test',
                               help='Test corresponds to medicine')
+    
     medicine_id = fields.Many2one('product.template',
-                                  domain="['|', ('medicine_ok', '=', True),"
-                                         "('vaccine_ok', '=', True)"
-                                         "]", required=True, string='Medicine',
-                                  help='Medicine for the lab test')
+        domain="['|', ('medicine_ok', '=', True), ('vaccine_ok', '=', True)]",
+        required=True, string='Chemicals Used',
+        help='Chemical/reagent used for this lab test')
+    
+    #medicine_id = fields.Many2one('product.template',
+                                  #domain="['|', ('medicine_ok', '=', True),""('vaccine_ok', '=', True)""]", required=True, string='Medicine', help='Medicine for the lab test')
     quantity = fields.Integer(string='Quantity', default=1,
                               help='Quantity of medicine')
     qty_available = fields.Float(string='Available', help='Available quantity',

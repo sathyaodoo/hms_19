@@ -68,6 +68,15 @@
             (0, 0, {'view_mode': 'form', 'view_id': ref('view_fee_master_form')})]"/>
     </record>
 
+    <record id="action_registration_fee" model="ir.actions.act_window">
+        <field name="name">Registration Fee</field>
+        <field name="res_model">hospital.registration.fee</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'list', 'view_id': ref('view_registration_fee_list')}),
+            (0, 0, {'view_mode': 'form', 'view_id': ref('view_registration_fee_form')})]"/>
+    </record>
+
     <record id="action_santhigiri_allergy" model="ir.actions.act_window">
         <field name="name">Allergy Master</field>
         <field name="res_model">santhigiri.allergy</field>
@@ -204,6 +213,10 @@
               parent="base_hospital_management.hospital_menu_configuration"
               action="action_fee_master"
               sequence="10"/>
+    <menuitem id="menu_config_registration_fee" name="Registration Fee"
+              parent="base_hospital_management.hospital_menu_configuration"
+              action="action_registration_fee"
+              sequence="11"/>
     <menuitem id="menu_config_allergy" name="Allergy Master"
               parent="base_hospital_management.hospital_menu_configuration"
               action="action_santhigiri_allergy"

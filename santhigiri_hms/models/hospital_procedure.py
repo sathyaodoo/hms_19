@@ -18,10 +18,20 @@ class HospitalProcedurePrescription(models.Model):
 
     reference = fields.Char(string='Reference', readonly=True, default='New', copy=False)
     outpatient_id = fields.Many2one('hospital.outpatient', string='OP Visit', ondelete='set null')
+    # Same "OP + Daily Procedures" wizard concept, now reachable from
+    # an IP admission too (see hospital.inpatient.action_ip_daily_procedures
+    # in hospital_inpatient.py) — outpatient_id and inpatient_id are
+    # both optional and mutually exclusive in practice: an OP-originated
+    # prescription sets outpatient_id, an IP-originated one sets
+    # inpatient_id, but patient_id itself is always required directly
+    # regardless of source, so nothing else in this model needs to
+    # change to support either origin.
+    inpatient_id = fields.Many2one('hospital.inpatient', string='IP Admission', ondelete='set null')
     patient_id = fields.Many2one('res.partner', string='Patient', required=True,
                                   domain=[('patient_seq', '!=', False)])
     patient_seq = fields.Char(related='patient_id.patient_seq', store=True, string='Patient No.')
     op_reference = fields.Char(related='outpatient_id.op_reference', store=True, string='OP Reference')
+    ip_reference = fields.Char(related='inpatient_id.name', store=True, string='IP Reference')
 
     doctor_id = fields.Many2one('hr.employee', string='Prescribed By (Doctor)',
                                  domain=[('doctor', '=', True)], required=True)

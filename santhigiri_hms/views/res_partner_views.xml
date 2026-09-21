@@ -1,125 +1,196 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- ── Allergy Master list view ───────────────────────────────────────── -->
-    <record id="view_allergy_list" model="ir.ui.view">
-        <field name="name">santhigiri.allergy.list</field>
-        <field name="model">santhigiri.allergy</field>
-        <field name="arch" type="xml">
-            <list string="Allergy Master" editable="bottom">
-                <field name="name"/>
-                <field name="category"/>
-                <field name="notes"/>
-            </list>
-        </field>
-    </record>
+	<!-- ── Allergy Master list view ───────────────────────────────────────── -->
+	<record id="view_allergy_list" model="ir.ui.view">
+		<field name="name">santhigiri.allergy.list</field>
+		<field name="model">santhigiri.allergy</field>
+		<field name="arch" type="xml">
+			<list string="Allergy Master" editable="bottom">
+				<field name="name" />
+				<field name="category" />
+				<field name="notes" />
+			</list>
+		</field>
+	</record>
 
-    <!-- ── Patient form extension ─────────────────────────────────────────── -->
-    <record id="view_partner_patient_santhigiri" model="ir.ui.view">
-        <field name="name">res.partner.santhigiri.patient</field>
-        <field name="model">res.partner</field>
-        <field name="inherit_id" ref="base_hospital_management.res_partner_view_form"/>
-        <field name="arch" type="xml">
+	<!-- ── Patient form extension ─────────────────────────────────────────── -->
+	<record id="view_partner_patient_santhigiri" model="ir.ui.view">
+		<field name="name">res.partner.santhigiri.patient</field>
+		<field name="model">res.partner</field>
+		<field name="inherit_id"
+			ref="base_hospital_management.res_partner_view_form" />
+		<field name="arch" type="xml">
 
-            <!-- 1. Allergy alert banner — appears above the form sheet -->
-            <xpath expr="//form/sheet" position="before">
-                <div class="alert alert-danger d-flex align-items-center gap-2"
-                     invisible="not has_allergy">
-                    <strong>&#9888; ALLERGY ALERT:</strong>
-                    <field name="allergy_summary" readonly="1"/>
-                </div>
-            </xpath>
+			<!-- 1. Allergy alert banner — appears above the form sheet -->
+			<xpath expr="//form/sheet" position="before">
+				<div class="alert alert-danger d-flex align-items-center gap-2"
+					invisible="not has_allergy">
+					<strong>&#9888; ALLERGY ALERT:</strong>
+					<field name="allergy_summary" readonly="1" />
+				</div>
+			</xpath>
 
-            <!-- 2. Add Nationality + ID fields after marital_status
+			<!-- 2. Add Nationality + ID fields after marital_status
                  (marital_status is the last clean <field> in the right group) -->
-            <xpath expr="//field[@name='marital_status']" position="after">
-               <field name="age" readonly="1"/>
-               <field name="age_manual" invisible="date_of_birth != False" string="Age (if DOB unknown)"/>
-                <field name="nationality" widget="selection"/>
-                <field name="aadhaar_no"
-                       invisible="nationality == 'foreign'"/>
-                <field name="passport_no"
-                       invisible="nationality == 'indian'"
-                       required="nationality == 'foreign'"/>
-                <field name="visa_no"
-                       invisible="nationality == 'indian'"/>
-                <field name="arrival_date"
-                       invisible="nationality == 'indian'"
-                       required="nationality == 'foreign'"/>
-                <field name="port_of_entry"
-                       invisible="nationality == 'indian'"/>
-                <field name="immigration_copy"
-                       widget="binary"
-                       invisible="nationality == 'indian'"/>
-            </xpath>
+			<xpath expr="//field[@name='marital_status']" position="after">
+				<field name="age" readonly="1" />
+				<field name="age_manual" invisible="date_of_birth != False"
+					string="Age (if DOB unknown)" />
+				<field name="nationality" widget="selection" />
+				<field name="aadhaar_no"
+					invisible="nationality == 'foreign'" />
+				<field name="passport_no"
+					invisible="nationality == 'indian'"
+					required="nationality == 'foreign'" />
+				<field name="visa_no"
+					invisible="nationality == 'indian'" />
+				<field name="arrival_date"
+					invisible="nationality == 'indian'"
+					required="nationality == 'foreign'" />
+				<field name="port_of_entry"
+					invisible="nationality == 'indian'" />
+				<field name="immigration_copy"
+					widget="binary"
+					invisible="nationality == 'indian'" />
+			</xpath>
 
-            <!-- 3. Add allergy + existing conditions in Family and Insurance tab
+			<xpath expr="//field[@name='aadhaar_no']" position="after">
+				<field name="current_registration_fee" readonly="1" />
+				<field name="next_registration_due_date" readonly="1" />
+				<field name="registration_fee_due" invisible="1" />
+			</xpath>
+
+			<!-- 3. Add allergy + existing conditions in Family and Insurance
+			tab
                  (risk field already exists there — add our fields after it) -->
-            <xpath expr="//field[@name='risk']" position="after">
-                <field name="allergy_ids"
-                       widget="many2many_tags"
-                       string="Known Allergies"/>
-                <field name="existing_conditions"
-                       string="Existing Medical Conditions"
-                       placeholder="Known chronic or pre-existing conditions"/>
-            </xpath>
+			<xpath expr="//field[@name='risk']" position="after">
+				<field name="allergy_ids"
+					widget="many2many_tags"
+					string="Known Allergies" />
+				<field name="existing_conditions"
+					string="Existing Medical Conditions"
+					placeholder="Known chronic or pre-existing conditions" />
+			</xpath>
 
-            <!-- 4. Add emergency contact after allergy fields in same tab -->
-            <xpath expr="//field[@name='existing_conditions']" position="after">
-                <separator string="Emergency Contact"/>
-                <field name="emergency_contact_name"/>
-                <field name="emergency_contact_phone" widget="phone"/>
-            </xpath>
+			<!-- 4. Add emergency contact after allergy fields in same tab -->
+			<xpath expr="//field[@name='existing_conditions']" position="after">
+				<separator string="Emergency Contact" />
+				<field name="emergency_contact_name" />
+				<field name="emergency_contact_phone" widget="phone" />
+			</xpath>
 
-            <!-- 5. Add Santhigiri Classification tab BEFORE the Social tab -->
-            <xpath expr="//page[@name='family']" position="after">
-                <page string="Santhigiri Classification"
-                      name="santhigiri_classification">
-                    <group>
-                        <group string="Patient Classification">
-                            <field name="vulnerability"/>
-                            <field name="payward_preference"/>
-                            <field name="jeevanam_scheme"/>
-                            <field name="geo_location"/>
-                        </group>
-                        <group string="Foreign Patient Details"
-                               invisible="nationality == 'indian'">
-                            <field name="form_c_ref"/>
-                            <field name="form_c_submitted_date"/>
-                            <button name="action_print_form_c"
-                                    type="object"
-                                    string="Print Form C"
-                                    class="btn btn-warning mt-2"
-                                    icon="fa-print"/>
-                        </group>
-                    </group>
-                </page>
-            </xpath>
+			<!-- 5. Add Santhigiri Classification tab BEFORE the Social tab -->
+			<xpath expr="//page[@name='family']" position="after">
+				<page string="Santhigiri Classification"
+					name="santhigiri_classification">
+					<group>
+						<group string="Patient Classification">
+							<field name="vulnerability" />
+							<field name="payward_preference" />
+							<field name="jeevanam_scheme" />
+							<field name="geo_location" />
+						</group>
+						<group string="Foreign Patient Details"
+							invisible="nationality == 'indian'">
+							<field name="form_c_ref" />
+							<field name="form_c_submitted_date" />
+							<button name="action_print_form_c"
+								type="object"
+								string="Print Form C"
+								class="btn btn-warning mt-2"
+								icon="fa-print" />
+						</group>
+					</group>
+				</page>
+			</xpath>
 
-            <!-- 6. EMR Timeline button in the header -->
-            <xpath expr="//button[@name='action_generate_patient_card']"
-                   position="after">
-                <button name="action_open_emr_timeline"
-                        type="object"
-                        string="EMR Timeline"
-                        class="btn btn-info"
-                        icon="fa-history"/>
-            </xpath>
+			<!-- 7. Onboarding: Previous Medical History / Previous
+                 Prescriptions — added as a 4th sub-tab inside the
+                 EXISTING "Medical" tab (name="medicine"), alongside
+                 the system-generated Medicine/Lab Tests/Vaccine
+                 sub-tabs, since those are create="0" and cannot be
+                 used to log a patient's pre-existing history. -->
+			<xpath expr="//field[@name='notes']/parent::page" position="before">
+				<page string="Previous History"
+					name="previous_history">
+					<separator string="Previous Medical History" />
+					<field name="medical_history_ids">
+						<list editable="bottom">
+							<field name="date" />
+							<field name="condition" />
+							<field name="is_chronic" />
+							<field name="treated_at" />
+							<field name="treating_doctor" />
+							<field name="description" />
+							<field name="attachment" widget="binary"
+								filename="attachment_name" />
+							<field name="attachment_name" invisible="1" />
+						</list>
+					</field>
+					<separator string="Previous Prescriptions" />
+					<field name="previous_prescription_ids">
+						<list editable="bottom">
+							<field name="date" />
+							<field name="medicine_name" />
+							<field name="medicine_id" />
+							<field name="dosage" />
+							<field name="frequency" />
+							<field name="duration" />
+							<field name="prescribed_by" />
+							<field name="note" />
+						</list>
+					</field>
+				</page>
+			</xpath>
 
-        </field>
-    </record>
+			<!-- 8. Registration fee: header button, type="object" —
+                 calls action_generate_registration_invoice directly
+                 on res.partner (see res_partner.py). It does NOT open
+                 a wizard/popup; it raises the invoice immediately
+                 using the amount configured under Configuration >
+                 Registration Fee and then opens that invoice.
+                 Visibility is fully DYNAMIC, driven by the computed
+                 field registration_fee_due (registration_date +
+                 hospital.registration.fee.renewal_months) — nothing
+                 here is a hardcoded date or a fixed flag; the button
+                 appears/disappears on its own as that computation
+                 changes. Anchored on the existing "Add Appointment"
+                 button by @name (a valid, non-translatable
+                 inheritance selector). -->
+			<xpath expr="//button[@name='action_schedule']" position="after">
+				<button name="action_generate_registration_invoice"
+					type="object"
+					string="Generate Registration Invoice"
+					class="btn-secondary"
+					invisible="not patient_seq or patient_seq == 'New' or not registration_fee_due"
+					groups="base_hospital_management.base_hospital_management_group_manager,base_hospital_management.base_hospital_management_group_receptionist" />
+			</xpath>
 
-    <!-- ── EMR Event list view ────────────────────────────────────────────── -->
-    <record id="view_emr_event_list" model="ir.ui.view">
-        <field name="name">santhigiri.emr.event.list</field>
-        <field name="model">santhigiri.emr.event</field>
-        <field name="arch" type="xml">
-            <list string="EMR Timeline">
-                <field name="event_date"/>
-                <field name="event_type" widget="badge"/>
-                <field name="summary"/>
-                <field name="doctor_id"/>
-                <field name="details"/>
-            </list>
-        </field>
-    </record>
+			<!-- 6. EMR Timeline button in the header -->
+			<xpath expr="//button[@name='action_generate_patient_card']"
+				position="after">
+				<button name="action_open_emr_timeline"
+					type="object"
+					string="EMR Timeline"
+					class="btn btn-info"
+					icon="fa-history" />
+			</xpath>
+
+		</field>
+	</record>
+
+	<!-- ── EMR Event list view ────────────────────────────────────────────── -->
+	<record id="view_emr_event_list" model="ir.ui.view">
+		<field name="name">santhigiri.emr.event.list</field>
+		<field name="model">santhigiri.emr.event</field>
+		<field name="arch" type="xml">
+			<list string="EMR Timeline">
+				<field name="event_date" />
+				<field name="event_type" widget="badge" />
+				<field name="summary" />
+				<field name="doctor_id" />
+				<field name="details" />
+			</list>
+		</field>
+	</record>
 </odoo>
