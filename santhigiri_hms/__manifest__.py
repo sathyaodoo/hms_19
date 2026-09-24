@@ -8,20 +8,27 @@
         Covers: Patient (nationality/Aadhaar/allergy), OP (category fee, 3 outcomes, Anupanam/Route),
         Casualty (full workflow), IP (categories, treatment/medication plans, discharge bill),
         Food Management, Daily Procedures, Pharmacy (OP/IP split), Lab (abnormal alert),
-        Medical Camps, Internship Management, Purchase approval, NCISM reports.
+        Medical Camps, Internship Management, Purchase approval, NCISM reports,
+        Online booking (/santhigiri/book — Patient ID + OTP),
+        Patient Portal (/patient — login with Patient ID + password or OTP;
+        appointments, cancellation, prescriptions, lab results,
+        admissions, therapies, follow-ups, bills and profile).
     ''',
     'author': 'Santhigiri HMS Implementation Team',
     'category': 'Healthcare',
     'depends': ['base_hospital_management', 'purchase', 'stock', 'mail',
-                'website', 'account'],
+                'website', 'account', 'portal'],
     'data': [
         # Security (load first)
         'security/santhigiri_groups.xml',
         'security/ir.model.access.csv',
+        # Clean-up of the removed Portal Password button (must load before views)
+        'data/remove_portal_password.xml',
         # Sequences & cron
         'data/ir_sequence_data.xml',
         'data/website_data.xml',
         'data/ir_cron_data.xml',
+        'data/patient_portal_data.xml',
         # Views
         'views/patient_room_views.xml',
         'views/hospital_bed_views.xml',
@@ -40,6 +47,8 @@
         'views/hospital_camp_views.xml',
         'views/hospital_intern_views.xml',
         'views/portal_templates.xml',
+        'views/patient_portal_templates.xml',
+        'views/patient_portal_otp_views.xml',
         'views/hospital_followup_views.xml',
         'views/purchase_approval_views.xml',
         'views/menu_views.xml',
@@ -60,7 +69,13 @@
         'reports/santhigiri_custom_reports.xml',
         'reports/report_assessment.xml',
         'reports/reassessment_report.xml',
+        'reports/portal_prescription_report.xml',
     ],
+    #'assets': {
+        #'web.assets_frontend': [
+            #'santhigiri_hms/static/src/css/patient_portal.css',
+        #],
+    #},
     'installable': True,
     'application': False,
     'license': 'LGPL-3',
