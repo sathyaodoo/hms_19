@@ -28,8 +28,15 @@ class ResUsers(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
-        """Override to add patient_seq to the partners created from users"""
+        """Mark partners created for users as 'User' so they are not
+        listed as patients.
+
+        Only partners WITHOUT a real Patient ID are marked. Previously
+        every new user overwrote its partner's patient_seq, so granting
+        portal/user access to an existing patient (partner_id given)
+        silently destroyed that patient's Patient ID."""
         users = super().create(vals_list)
         for user in users:
-            user.partner_id.patient_seq = 'User'
+            if user.partner_id.patient_seq in (False, 'New'):
+                user.partner_id.patient_seq = 'User'
         return users

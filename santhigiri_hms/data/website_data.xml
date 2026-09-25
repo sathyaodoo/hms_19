@@ -9,5 +9,12 @@
             <field name="parent_id" ref="website.main_menu"/>
             <field name="sequence" type="int">50</field>
         </record>
+        <!-- Patient Portal (separate from booking) -->
+        <record id="website_menu_patient_portal" model="website.menu">
+            <field name="name">Patient Portal</field>
+            <field name="url">/patient</field>
+            <field name="parent_id" ref="website.main_menu"/>
+            <field name="sequence" type="int">51</field>
+        </record>
     </data>
 </odoo>

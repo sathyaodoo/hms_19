@@ -33,3 +33,4 @@ from . import lab_test_master
 from . import patient_emr
 from . import op_assessment
 from . import op_reassessment
+from . import patient_portal

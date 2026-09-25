@@ -1,0 +1,887 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ═══════════════════════════════════════════════════════════════════
+         Shared pieces
+         ═══════════════════════════════════════════════════════════════════ -->
+
+    <!-- Flash message (set by the controller, shown once) -->
+    <template id="patient_portal_flash" name="Patient Portal: Flash">
+        <div t-if="flash" t-attf-class="alert alert-#{flash['level']} d-flex align-items-center" role="alert">
+            <t t-out="flash['text']"/>
+        </div>
+    </template>
+
+    <!-- Small coloured badge for a state / status value -->
+    <template id="patient_portal_badge" name="Patient Portal: Badge">
+        <t t-set="badge_colors" t-value="{
+            'draft': 'secondary', 'op': 'primary', 'opdone': 'success',
+            'invoice': 'success', 'inpatient': 'info', 'cancel': 'danger',
+            'reserve': 'warning', 'admit': 'primary', 'dis': 'success',
+            'test': 'warning', 'completed': 'success',
+            'processing': 'warning', 'published': 'success',
+            'pending': 'warning', 'attended': 'success', 'missed': 'danger',
+            'rescheduled': 'info', 'confirmed': 'primary',
+            'in_progress': 'info', 'done': 'success', 'cancelled': 'danger',
+            'not_paid': 'danger', 'partial': 'warning', 'paid': 'success',
+            'in_payment': 'info', 'reversed': 'secondary',
+        }"/>
+        <span t-attf-class="badge rounded-pill text-bg-#{badge_colors.get(badge_value, 'secondary')}">
+            <t t-out="selection_label(badge_record, badge_field) or badge_value"/>
+        </span>
+    </template>
+
+    <!-- Page shell for the logged-in portal: sidebar + content -->
+    <template id="patient_portal_layout" name="Patient Portal: Layout">
+        <t t-call="website.layout">
+            <t t-set="additional_title">Patient Portal</t>
+            <div class="o_shms_portal container py-4">
+                <div class="row g-4">
+                    <aside class="col-lg-3">
+                        <div class="card shadow-sm o_shms_sidebar">
+                            <div class="card-body text-center border-bottom">
+                                <div class="o_shms_avatar mx-auto mb-2">
+                                    <t t-out="(patient.name or '?')[:1].upper()"/>
+                                </div>
+                                <h6 class="mb-0" t-out="patient.name"/>
+                                <small class="text-muted">Patient ID: <t t-out="patient.patient_seq"/></small>
+                            </div>
+                            <t t-set="nav_items" t-value="[
+                                ('home', '/patient', 'fa-home', 'Dashboard'),
+                                ('appointments', '/patient/appointments', 'fa-stethoscope', 'My Appointments'),
+                                ('lab', '/patient/lab', 'fa-flask', 'Lab Results'),
+                                ('admissions', '/patient/admissions', 'fa-bed', 'Admissions'),
+                                ('procedures', '/patient/procedures', 'fa-leaf', 'Therapies'),
+                                ('followups', '/patient/followups', 'fa-bell-o', 'Follow-ups'),
+                                ('bills', '/patient/bills', 'fa-file-text-o', 'Bills'),
+                                ('profile', '/patient/profile', 'fa-user', 'My Profile'),
+                            ]"/>
+                            <nav class="list-group list-group-flush">
+                                <t t-foreach="nav_items" t-as="item">
+                                    <a t-att-href="item[1]"
+                                       t-attf-class="list-group-item list-group-item-action #{'active' if portal_page == item[0] else ''}">
+                                        <i t-attf-class="fa fa-fw #{item[2]} me-2"/><t t-out="item[3]"/>
+                                    </a>
+                                </t>
+                                <a href="/patient/logout" class="list-group-item list-group-item-action text-danger">
+                                    <i class="fa fa-fw fa-sign-out me-2"/>Log out
+                                </a>
+                            </nav>
+                        </div>
+                    </aside>
+                    <main class="col-lg-9">
+                        <div t-if="patient.has_allergy" class="alert alert-danger py-2" role="alert">
+                            <i class="fa fa-exclamation-triangle me-1"/>
+                            <strong>Known allergies:</strong> <t t-out="patient.allergy_summary"/>
+                        </div>
+                        <t t-call="santhigiri_hms.patient_portal_flash"/>
+                        <t t-out="0"/>
+                    </main>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <!-- Centered card used by the login pages -->
+    <template id="patient_portal_auth_layout" name="Patient Portal: Login Layout">
+        <t t-call="website.layout">
+            <t t-set="additional_title">Patient Portal — Login</t>
+            <div class="o_shms_portal container py-5">
+                <div class="row justify-content-center">
+                    <div class="col-md-7 col-lg-5">
+                        <div class="card shadow-sm">
+                            <div class="card-header o_shms_brand text-center py-4">
+                                <h4 class="mb-1"><i class="fa fa-heartbeat me-2"/>Patient Portal</h4>
+                                <small t-out="hospital.name"/>
+                            </div>
+                            <div class="card-body p-4">
+                                <t t-call="santhigiri_hms.patient_portal_flash"/>
+                                <div t-if="error" class="alert alert-danger" role="alert" t-out="error"/>
+                                <t t-out="0"/>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <!-- ═══════════════════════════════════════════════════════════════════
+         Login
+         ═══════════════════════════════════════════════════════════════════ -->
+    <template id="patient_portal_login" name="Patient Portal: Login with Password">
+        <t t-call="santhigiri_hms.patient_portal_auth_layout">
+            <form action="/patient/login" method="post">
+                <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold" for="patient_ref">Patient ID or username</label>
+                    <input type="text" class="form-control form-control-lg" id="patient_ref"
+                           name="patient_ref" t-att-value="patient_ref or ''"
+                           placeholder="Patient ID (e.g. PAT001)"
+                           required="required" autocomplete="username" autofocus="autofocus"/>
+                </div>
+                <div class="mb-1">
+                    <label class="form-label fw-semibold" for="password">Password</label>
+                    <input type="password" class="form-control form-control-lg" id="password"
+                           name="password" required="required" autocomplete="current-password"/>
+                </div>
+                <button type="submit" class="btn btn-primary btn-lg w-100 mt-3">
+                    Log in <i class="fa fa-arrow-right ms-1"/>
+                </button>
+            </form>
+            <div class="text-center my-3 text-muted small">— or —</div>
+            <a href="/patient/login/otp"
+               t-attf-class="btn #{'btn-primary' if no_password else 'btn-outline-primary'} w-100">
+                <i class="fa fa-mobile me-1"/>Log in with a one-time code (OTP)
+            </a>
+            <div class="alert alert-info small mt-4 mb-0" role="status">
+                <i class="fa fa-info-circle me-1"/>
+                <t t-if="first_login_enabled">
+                    <strong>First time?</strong> Type your Patient ID in <em>both</em>
+                    boxes (Patient ID and Password), then create your own password.<br/>
+                    <strong>Forgot your password?</strong> Log in with a one-time code
+                    and create a new one.
+                </t>
+                <t t-else="">
+                    <strong>First time or forgot your password?</strong> Log in with a
+                    one-time code sent to your registered mobile / e-mail, then
+                    create a new password. If you have no registered mobile or
+                    e-mail, please ask the reception to add one.
+                </t>
+            </div>
+        </t>
+    </template>
+
+    <template id="patient_portal_login_otp" name="Patient Portal: Login with OTP">
+        <t t-call="santhigiri_hms.patient_portal_auth_layout">
+            <form action="/patient/login/otp" method="post">
+                <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                <label class="form-label fw-semibold" for="patient_ref">Patient ID</label>
+                <input type="text" class="form-control form-control-lg" id="patient_ref"
+                       name="patient_ref" t-att-value="patient_ref or ''"
+                       placeholder="As printed on your hospital ID card"
+                       required="required" autocomplete="username" autofocus="autofocus"/>
+                <button type="submit" class="btn btn-primary btn-lg w-100 mt-3">
+                    Send login code <i class="fa fa-arrow-right ms-1"/>
+                </button>
+            </form>
+            <a href="/patient/login" class="d-block text-center small mt-3">&#8592; Log in with password instead</a>
+            <div class="alert alert-info small mt-4 mb-0" role="status">
+                <i class="fa fa-info-circle me-1"/>
+                A one-time code will be sent to the mobile number / e-mail
+                registered at the hospital. New patients must register at
+                the reception first.
+            </div>
+        </t>
+    </template>
+
+    <template id="patient_portal_verify" name="Patient Portal: Enter Code">
+        <t t-call="santhigiri_hms.patient_portal_auth_layout">
+            <div t-if="debug_code" class="alert alert-warning" role="alert">
+                <strong>TEST MODE</strong> — no SMS gateway in use. Your code is
+                <strong class="font-monospace fs-5" t-out="debug_code"/>.
+                Switch off <code>santhigiri_hms.portal_otp_debug</code> in production.
+            </div>
+            <p class="mb-3">
+                We have sent a <t t-out="validity"/>-minute login code
+                <t t-if="masked_phone">by SMS to <strong t-out="masked_phone"/></t>
+                <t t-if="masked_phone and masked_email"> and </t>
+                <t t-if="masked_email">by e-mail to <strong t-out="masked_email"/></t>.
+            </p>
+            <form action="/patient/login/verify" method="post">
+                <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                <label class="form-label fw-semibold" for="otp_code">Login code</label>
+                <input type="text" class="form-control form-control-lg text-center o_shms_otp"
+                       id="otp_code" name="otp_code" inputmode="numeric" pattern="[0-9]{6}"
+                       maxlength="6" placeholder="••••••" required="required"
+                       autocomplete="one-time-code" autofocus="autofocus"/>
+                <button type="submit" class="btn btn-primary btn-lg w-100 mt-3">
+                    Verify and log in
+                </button>
+            </form>
+            <div class="d-flex justify-content-between align-items-center mt-3">
+                <a href="/patient/login/otp" class="small">&#8592; Use a different Patient ID</a>
+                <form action="/patient/login/resend" method="post" class="m-0">
+                    <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                    <button type="submit" class="btn btn-link btn-sm p-0">Send a new code</button>
+                </form>
+            </div>
+        </t>
+    </template>
+
+    <!-- ═══════════════════════════════════════════════════════════════════
+         Dashboard
+         ═══════════════════════════════════════════════════════════════════ -->
+    <template id="patient_portal_dashboard" name="Patient Portal: Dashboard">
+        <t t-call="santhigiri_hms.patient_portal_layout">
+            <h3 class="mb-3">Welcome, <t t-out="patient.name"/></h3>
+
+            <div class="row g-3 mb-4">
+                <div class="col-sm-6 col-xl-3">
+                    <a href="/patient/appointments" class="card o_shms_stat h-100 text-decoration-none">
+                        <div class="card-body">
+                            <div class="text-muted small">Upcoming appointments</div>
+                            <div class="fs-3 fw-bold" t-out="len(upcoming)"/>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-sm-6 col-xl-3">
+                    <a href="/patient/followups" class="card o_shms_stat h-100 text-decoration-none">
+                        <div class="card-body">
+                            <div class="text-muted small">Pending follow-ups</div>
+                            <div class="fs-3 fw-bold" t-out="len(followups)"/>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-sm-6 col-xl-3">
+                    <a href="/patient/procedures" class="card o_shms_stat h-100 text-decoration-none">
+                        <div class="card-body">
+                            <div class="text-muted small">Active therapies</div>
+                            <div class="fs-3 fw-bold" t-out="len(procedures)"/>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-sm-6 col-xl-3">
+                    <a href="/patient/bills" class="card o_shms_stat h-100 text-decoration-none">
+                        <div class="card-body">
+                            <div class="text-muted small">Amount due</div>
+                            <div t-attf-class="fs-3 fw-bold #{'text-danger' if amount_due else ''}"
+                                 t-out="amount_due" t-options="{'widget': 'monetary', 'display_currency': currency}"/>
+                        </div>
+                    </a>
+                </div>
+            </div>
+
+            <div t-if="admission" class="alert alert-primary d-flex justify-content-between align-items-center" role="status">
+                <div>
+                    <i class="fa fa-bed me-1"/>
+                    <strong>Current admission <t t-out="admission.name"/></strong>
+                    since <t t-out="admission.hosp_date" t-options="{'widget': 'date'}"/>
+                    <t t-if="admission.room_id"> · Room <t t-out="admission.room_id.display_name"/></t>
+                    <t t-if="admission.bed_id"> · Bed <t t-out="admission.bed_id.display_name"/></t>
+                </div>
+                <a t-attf-href="/patient/admissions/#{admission.id}" class="btn btn-sm btn-primary">View</a>
+            </div>
+
+            <div class="row g-4">
+                <div class="col-lg-6">
+                    <div class="card h-100">
+                        <div class="card-header"><strong>Upcoming appointments</strong></div>
+                        <ul class="list-group list-group-flush">
+                            <li t-if="not upcoming" class="list-group-item text-muted">No upcoming appointments.</li>
+                            <t t-foreach="upcoming" t-as="visit">
+                                <a t-attf-href="/patient/appointments/#{visit.id}" class="list-group-item list-group-item-action">
+                                    <div class="d-flex justify-content-between">
+                                        <strong t-out="visit.doctor_id.doctor_id.name or visit.doctor_id.name"/>
+                                        <span class="text-muted small" t-out="visit.op_reference"/>
+                                    </div>
+                                    <small>
+                                        <t t-out="visit.op_date" t-options="{'widget': 'date'}"/>
+                                        <t t-if="visit.slot"> at <t t-out="visit._portal_slot_display()"/></t>
+                                    </small>
+                                </a>
+                            </t>
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="card h-100">
+                        <div class="card-header"><strong>Recent lab tests</strong></div>
+                        <ul class="list-group list-group-flush">
+                            <li t-if="not lab_tests" class="list-group-item text-muted">No lab tests yet.</li>
+                            <t t-foreach="lab_tests" t-as="test">
+                                <a t-attf-href="/patient/lab/#{test.id}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                                    <span>
+                                        <t t-out="test.test_id.name or 'Lab test'"/><br/>
+                                        <small class="text-muted" t-out="test.date" t-options="{'widget': 'date'}"/>
+                                    </span>
+                                    <span>
+                                        <span t-if="test.abnormal_count" class="badge text-bg-danger me-1">
+                                            <t t-out="test.abnormal_count"/> abnormal
+                                        </span>
+                                        <t t-call="santhigiri_hms.patient_portal_badge">
+                                            <t t-set="badge_record" t-value="test"/>
+                                            <t t-set="badge_field" t-value="'state'"/>
+                                            <t t-set="badge_value" t-value="test.state"/>
+                                        </t>
+                                    </span>
+                                </a>
+                            </t>
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-12" t-if="followups">
+                    <div class="card">
+                        <div class="card-header"><strong>Follow-up reminders</strong></div>
+                        <ul class="list-group list-group-flush">
+                            <li t-foreach="followups" t-as="fu" class="list-group-item">
+                                <strong t-out="fu.rescheduled_to or fu.followup_date" t-options="{'widget': 'date'}"/>
+                                <span t-attf-class="ms-2 #{'text-danger' if (fu.rescheduled_to or fu.followup_date) &lt; today else 'text-muted'}">
+                                    <t t-out="fu.reason or ''"/>
+                                </span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <!-- ═══════════════════════════════════════════════════════════════════
+         Appointments
+         ═══════════════════════════════════════════════════════════════════ -->
+    <template id="patient_portal_visit_rows" name="Patient Portal: Visit Rows">
+        <tr t-foreach="visits" t-as="visit">
+            <td><a t-attf-href="/patient/appointments/#{visit.id}" t-out="visit.op_reference"/></td>
+            <td>
+                <t t-out="visit.op_date" t-options="{'widget': 'date'}"/>
+                <small t-if="visit.slot" class="text-muted d-block" t-out="visit._portal_slot_display()"/>
+            </td>
+            <td t-out="visit.doctor_id.doctor_id.name or visit.doctor_id.name"/>
+            <td>
+                <t t-call="santhigiri_hms.patient_portal_badge">
+                    <t t-set="badge_record" t-value="visit"/>
+                    <t t-set="badge_field" t-value="'state'"/>
+                    <t t-set="badge_value" t-value="visit.state"/>
+                </t>
+            </td>
+            <td class="text-end">
+                <a t-attf-href="/patient/appointments/#{visit.id}" class="btn btn-sm btn-outline-primary">Details</a>
+            </td>
+        </tr>
+    </template>
+
+    <template id="patient_portal_appointments" name="Patient Portal: Appointments">
+        <t t-call="santhigiri_hms.patient_portal_layout">
+            <h3 class="mb-3">My Appointments</h3>
+            <h5 class="mt-3">Upcoming</h5>
+            <div class="card mb-4">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light"><tr><th>OP Ref.</th><th>Date / Time</th><th>Doctor</th><th>Status</th><th/></tr></thead>
+                        <tbody>
+                            <tr t-if="not upcoming"><td colspan="5" class="text-muted">No upcoming appointments.</td></tr>
+                            <t t-call="santhigiri_hms.patient_portal_visit_rows"><t t-set="visits" t-value="upcoming"/></t>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <h5>History</h5>
+            <div class="card">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light"><tr><th>OP Ref.</th><th>Date / Time</th><th>Doctor</th><th>Status</th><th/></tr></thead>
+                        <tbody>
+                            <tr t-if="not past"><td colspan="5" class="text-muted">No previous visits.</td></tr>
+                            <t t-call="santhigiri_hms.patient_portal_visit_rows"><t t-set="visits" t-value="past"/></t>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <template id="patient_portal_appointment_detail" name="Patient Portal: Appointment">
+        <t t-call="santhigiri_hms.patient_portal_layout">
+            <a href="/patient/appointments" class="small">&#8592; All appointments</a>
+            <div class="d-flex justify-content-between align-items-center my-2">
+                <h3 class="mb-0">Visit <t t-out="visit.op_reference"/></h3>
+                <t t-call="santhigiri_hms.patient_portal_badge">
+                    <t t-set="badge_record" t-value="visit"/>
+                    <t t-set="badge_field" t-value="'state'"/>
+                    <t t-set="badge_value" t-value="visit.state"/>
+                </t>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-body">
+                    <dl class="row mb-0">
+                        <dt class="col-sm-4">Date</dt>
+                        <dd class="col-sm-8"><t t-out="visit.op_date" t-options="{'widget': 'date'}"/>
+                            <t t-if="visit.slot"> at <t t-out="visit._portal_slot_display()"/></t></dd>
+                        <dt class="col-sm-4">Doctor</dt>
+                        <dd class="col-sm-8" t-out="visit.doctor_id.doctor_id.name or visit.doctor_id.name"/>
+                        <dt class="col-sm-4" t-if="visit.doctor_id.department_id">Department</dt>
+                        <dd class="col-sm-8" t-if="visit.doctor_id.department_id" t-out="visit.doctor_id.department_id.name"/>
+                        <dt class="col-sm-4">Category</dt>
+                        <dd class="col-sm-8" t-out="selection_label(visit, 'patient_category')"/>
+                        <dt class="col-sm-4" t-if="visit.reason">Reason for visit</dt>
+                        <dd class="col-sm-8" t-if="visit.reason" t-out="visit.reason"/>
+                        <dt class="col-sm-4" t-if="visit.provisional_diagnosis">Diagnosis</dt>
+                        <dd class="col-sm-8" t-if="visit.provisional_diagnosis" t-out="visit.provisional_diagnosis"/>
+                        <dt class="col-sm-4" t-if="visit.treatment_notes">Advice / plan</dt>
+                        <dd class="col-sm-8" t-if="visit.treatment_notes" t-out="visit.treatment_notes"/>
+                        <dt class="col-sm-4" t-if="visit.followup_date">Follow-up on</dt>
+                        <dd class="col-sm-8" t-if="visit.followup_date">
+                            <t t-out="visit.followup_date" t-options="{'widget': 'date'}"/>
+                            <div class="text-muted" t-if="visit.followup_notes" t-out="visit.followup_notes"/>
+                        </dd>
+                    </dl>
+                </div>
+                <div class="card-footer bg-transparent d-flex gap-2" t-if="visit.prescription_ids or visit._portal_can_cancel()">
+                    <a t-if="visit.prescription_ids" t-attf-href="/patient/appointments/#{visit.id}/prescription"
+                       class="btn btn-outline-primary btn-sm">
+                        <i class="fa fa-download me-1"/>Prescription (PDF)
+                    </a>
+                    <form t-if="visit._portal_can_cancel()" t-attf-action="/patient/appointments/#{visit.id}/cancel"
+                          method="post" class="ms-auto"
+                          onsubmit="return confirm('Cancel this appointment?');">
+                        <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                        <button type="submit" class="btn btn-outline-danger btn-sm">
+                            <i class="fa fa-times me-1"/>Cancel appointment
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <t t-if="visit.prescription_ids">
+                <h5>Prescribed medicines</h5>
+                <div class="card">
+                    <div class="table-responsive">
+                        <table class="table align-middle mb-0">
+                            <thead class="table-light">
+                                <tr><th>Medicine</th><th>Dose</th><th>When</th><th>Food</th><th>Anupanam</th><th>Route</th><th>Days</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr t-foreach="visit.prescription_ids" t-as="line">
+                                    <td t-out="line.medicine_id.name"/>
+                                    <td t-out="line.no_intakes"/>
+                                    <td t-out="selection_label(line, 'time')"/>
+                                    <td t-out="selection_label(line, 'note')"/>
+                                    <td t-out="line.anupanam or ''"/>
+                                    <td t-out="selection_label(line, 'route')"/>
+                                    <td t-out="line.duration_days or ''"/>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </t>
+        </t>
+    </template>
+
+    <!-- ═══════════════════════════════════════════════════════════════════
+         Lab
+         ═══════════════════════════════════════════════════════════════════ -->
+    <template id="patient_portal_lab" name="Patient Portal: Lab Tests">
+        <t t-call="santhigiri_hms.patient_portal_layout">
+            <h3 class="mb-3">Lab Results</h3>
+            <div class="card">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light"><tr><th>Date</th><th>Test</th><th>Type</th><th>Status</th><th/></tr></thead>
+                        <tbody>
+                            <tr t-if="not tests"><td colspan="5" class="text-muted">No lab tests yet.</td></tr>
+                            <tr t-foreach="tests" t-as="test">
+                                <td t-out="test.date" t-options="{'widget': 'date'}"/>
+                                <td>
+                                    <t t-out="test.test_id.name or 'Lab test'"/>
+                                    <span t-if="test.abnormal_count" class="badge text-bg-danger ms-1"><t t-out="test.abnormal_count"/> abnormal</span>
+                                </td>
+                                <td t-out="selection_label(test, 'patient_type')"/>
+                                <td>
+                                    <t t-call="santhigiri_hms.patient_portal_badge">
+                                        <t t-set="badge_record" t-value="test"/>
+                                        <t t-set="badge_field" t-value="'state'"/>
+                                        <t t-set="badge_value" t-value="test.state"/>
+                                    </t>
+                                </td>
+                                <td class="text-end"><a t-attf-href="/patient/lab/#{test.id}" class="btn btn-sm btn-outline-primary">Results</a></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <template id="patient_portal_lab_detail" name="Patient Portal: Lab Test">
+        <t t-call="santhigiri_hms.patient_portal_layout">
+            <a href="/patient/lab" class="small">&#8592; All lab tests</a>
+            <h3 class="my-2"><t t-out="test.test_id.name or 'Lab test'"/></h3>
+            <p class="text-muted">
+                <t t-out="test.date" t-options="{'widget': 'date'}"/>
+                <t t-if="test.lab_id"> · <t t-out="test.lab_id.name"/></t>
+                <t t-if="test.is_external and test.external_lab_name"> · External lab: <t t-out="test.external_lab_name"/></t>
+            </p>
+            <div t-if="test.state != 'completed'" class="alert alert-warning" role="alert">
+                This test is still in progress. Results shown below may be incomplete.
+            </div>
+            <div class="card">
+                <div class="table-responsive">
+                    <table class="table align-middle mb-0">
+                        <thead class="table-light"><tr><th>Parameter</th><th>Result</th><th>Normal range</th><th>Unit</th><th/></tr></thead>
+                        <tbody>
+                            <tr t-if="not test.result_ids"><td colspan="5" class="text-muted">No results have been entered yet.</td></tr>
+                            <tr t-foreach="test.result_ids" t-as="res" t-attf-class="#{'table-danger' if res.is_abnormal else ''}">
+                                <td t-out="res.test_id.name"/>
+                                <td>
+                                    <strong t-out="res.result or '—'"/>
+                                    <span t-if="res.is_abnormal" class="badge text-bg-danger ms-1">Abnormal</span>
+                                </td>
+                                <td t-out="res.normal or ''"/>
+                                <td t-out="res.uom_id.name or ''"/>
+                                <td class="text-end">
+                                    <a t-if="res.attachment" t-attf-href="/patient/lab/result/#{res.id}/download"
+                                       class="btn btn-sm btn-outline-primary"><i class="fa fa-download me-1"/>Report</a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <p class="small text-muted mt-3 mb-0">
+                Results must be interpreted by your doctor. Please discuss any
+                abnormal value at your next consultation.
+            </p>
+        </t>
+    </template>
+
+    <!-- ═══════════════════════════════════════════════════════════════════
+         Admissions
+         ═══════════════════════════════════════════════════════════════════ -->
+    <template id="patient_portal_admissions" name="Patient Portal: Admissions">
+        <t t-call="santhigiri_hms.patient_portal_layout">
+            <h3 class="mb-3">Admissions</h3>
+            <div class="card">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light"><tr><th>IP No.</th><th>Admitted</th><th>Discharged</th><th>Doctor</th><th>Status</th><th/></tr></thead>
+                        <tbody>
+                            <tr t-if="not admissions"><td colspan="6" class="text-muted">No admissions.</td></tr>
+                            <tr t-foreach="admissions" t-as="ip">
+                                <td t-out="ip.name"/>
+                                <td t-out="ip.hosp_date" t-options="{'widget': 'date'}"/>
+                                <td><t t-if="ip.discharge_date" t-out="ip.discharge_date" t-options="{'widget': 'date'}"/></td>
+                                <td t-out="ip.attending_doctor_id.name or ''"/>
+                                <td>
+                                    <t t-call="santhigiri_hms.patient_portal_badge">
+                                        <t t-set="badge_record" t-value="ip"/>
+                                        <t t-set="badge_field" t-value="'state'"/>
+                                        <t t-set="badge_value" t-value="ip.state"/>
+                                    </t>
+                                </td>
+                                <td class="text-end"><a t-attf-href="/patient/admissions/#{ip.id}" class="btn btn-sm btn-outline-primary">Details</a></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <template id="patient_portal_admission_detail" name="Patient Portal: Admission">
+        <t t-call="santhigiri_hms.patient_portal_layout">
+            <a href="/patient/admissions" class="small">&#8592; All admissions</a>
+            <div class="d-flex justify-content-between align-items-center my-2">
+                <h3 class="mb-0">Admission <t t-out="admission.name"/></h3>
+                <!--<a t-if="admission.state in ('dis', 'invoice')"
+                   t-attf-href="/patient/admissions/#{admission.id}/discharge-summary"
+                   class="btn btn-outline-primary btn-sm"><i class="fa fa-download me-1"/>Discharge summary</a>-->
+            </div>
+            <div class="card mb-4">
+                <div class="card-body">
+                    <dl class="row mb-0">
+                        <dt class="col-sm-4">Status</dt>
+                        <dd class="col-sm-8" t-out="selection_label(admission, 'state')"/>
+                        <dt class="col-sm-4">Admitted on</dt>
+                        <dd class="col-sm-8" t-out="admission.hosp_date" t-options="{'widget': 'date'}"/>
+                        <dt class="col-sm-4" t-if="admission.discharge_date">Discharged on</dt>
+                        <dd class="col-sm-8" t-if="admission.discharge_date" t-out="admission.discharge_date" t-options="{'widget': 'date'}"/>
+                        <dt class="col-sm-4">Attending doctor</dt>
+                        <dd class="col-sm-8" t-out="admission.attending_doctor_id.name or '—'"/>
+                        <dt class="col-sm-4" t-if="admission.ward_id or admission.room_id or admission.bed_id">Ward / Room / Bed</dt>
+                        <dd class="col-sm-8" t-if="admission.ward_id or admission.room_id or admission.bed_id">
+                            <t t-if="admission.ward_id" t-out="admission.ward_id.display_name"/>
+                            <t t-if="admission.room_id"><t t-if="admission.ward_id"> / </t><t t-out="admission.room_id.display_name"/></t>
+                            <t t-if="admission.bed_id"><t t-if="admission.ward_id or admission.room_id"> / </t><t t-out="admission.bed_id.display_name"/></t>
+                        </dd>
+                        <dt class="col-sm-4" t-if="admission.bystander_name">Bystander</dt>
+                        <dd class="col-sm-8" t-if="admission.bystander_name">
+                            <t t-out="admission.bystander_name"/>
+                            <t t-if="admission.bystander_relation"> (<t t-out="admission.bystander_relation"/>)</t>
+                            <t t-if="admission.bystander_pass_no"> · Pass <t t-out="admission.bystander_pass_no"/></t>
+                        </dd>
+                        <dt class="col-sm-4" t-if="admission.diet_plan_id">Diet plan</dt>
+                        <dd class="col-sm-8" t-if="admission.diet_plan_id" t-out="admission.diet_plan_id.display_name"/>
+                        <dt class="col-sm-4" t-if="admission.discharge_plan">Discharge advice</dt>
+                        <dd class="col-sm-8" t-if="admission.discharge_plan" t-out="admission.discharge_plan"/>
+                    </dl>
+                </div>
+            </div>
+
+            <t t-if="admission.treatment_plan_ids">
+                <h5>Treatment plan</h5>
+                <div class="card mb-4">
+                    <div class="table-responsive">
+                        <table class="table align-middle mb-0">
+                            <thead class="table-light"><tr><th>Therapy</th><th>Frequency</th><th>Start</th><th>Sessions</th></tr></thead>
+                            <tbody>
+                                <tr t-foreach="admission.treatment_plan_ids" t-as="tp">
+                                    <td t-out="tp.procedure_id.name"/>
+                                    <td t-out="selection_label(tp, 'frequency')"/>
+                                    <td><t t-if="tp.start_date" t-out="tp.start_date" t-options="{'widget': 'date'}"/></td>
+                                    <td><t t-out="tp.completed_sessions"/> / <t t-out="tp.no_of_sessions"/></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </t>
+
+            <t t-if="admission.medication_plan_ids">
+                <h5>Medication plan</h5>
+                <div class="card">
+                    <div class="table-responsive">
+                        <table class="table align-middle mb-0">
+                            <thead class="table-light"><tr><th>Medicine</th><th>Dosage</th><th>Frequency</th><th>Days</th><th>Anupanam</th><th>Route</th></tr></thead>
+                            <tbody>
+                                <tr t-foreach="admission.medication_plan_ids" t-as="mp">
+                                    <td t-out="mp.medicine_id.name"/>
+                                    <td t-out="mp.dosage or ''"/>
+                                    <td t-out="selection_label(mp, 'frequency')"/>
+                                    <td t-out="mp.duration_days"/>
+                                    <td t-out="mp.anupanam or ''"/>
+                                    <td t-out="selection_label(mp, 'route')"/>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </t>
+        </t>
+    </template>
+
+    <!-- ═══════════════════════════════════════════════════════════════════
+         Procedures / therapies
+         ═══════════════════════════════════════════════════════════════════ -->
+    <template id="patient_portal_procedures" name="Patient Portal: Therapies">
+        <t t-call="santhigiri_hms.patient_portal_layout">
+            <h3 class="mb-3">Therapies &amp; Procedures</h3>
+            <p t-if="not courses" class="text-muted">No therapy courses have been prescribed.</p>
+            <div class="row g-3">
+                <div class="col-md-6" t-foreach="courses" t-as="course">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <h6 class="mb-1" t-out="course.procedure_id.name"/>
+                                <t t-call="santhigiri_hms.patient_portal_badge">
+                                    <t t-set="badge_record" t-value="course"/>
+                                    <t t-set="badge_field" t-value="'state'"/>
+                                    <t t-set="badge_value" t-value="course.state"/>
+                                </t>
+                            </div>
+                            <small class="text-muted d-block mb-2">
+                                <t t-out="course.reference"/> · from <t t-out="course.start_date" t-options="{'widget': 'date'}"/>
+                                <t t-if="course.doctor_id"> · Dr. <t t-out="course.doctor_id.name"/></t>
+                            </small>
+                            <div class="progress mb-1" role="progressbar" style="height: 8px;">
+                                <div class="progress-bar" t-attf-style="width: #{min(course.progress_pct or 0, 100)}%;"/>
+                            </div>
+                            <small><t t-out="course.completed_sessions"/> of <t t-out="course.no_of_sessions"/> sessions completed</small>
+                            <div t-if="course.instructions" class="small mt-2"><strong>Instructions:</strong> <t t-out="course.instructions"/></div>
+                            <div t-if="course.precautions" class="small mt-1 text-danger"><strong>Precautions:</strong> <t t-out="course.precautions"/></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <!-- ═══════════════════════════════════════════════════════════════════
+         Follow-ups
+         ═══════════════════════════════════════════════════════════════════ -->
+    <template id="patient_portal_followups" name="Patient Portal: Follow-ups">
+        <t t-call="santhigiri_hms.patient_portal_layout">
+            <h3 class="mb-3">Follow-ups</h3>
+            <div class="card">
+                <div class="table-responsive">
+                    <table class="table align-middle mb-0">
+                        <thead class="table-light"><tr><th>Date</th><th>Instructions</th><th>Advised by</th><th>Status</th></tr></thead>
+                        <tbody>
+                            <tr t-if="not followups"><td colspan="4" class="text-muted">No follow-ups.</td></tr>
+                            <tr t-foreach="followups" t-as="fu">
+                                <td>
+                                    <t t-out="fu.rescheduled_to or fu.followup_date" t-options="{'widget': 'date'}"/>
+                                    <small t-if="fu.rescheduled_to" class="d-block text-muted">
+                                        (was <t t-out="fu.followup_date" t-options="{'widget': 'date'}"/>)
+                                    </small>
+                                </td>
+                                <td t-out="fu.reason or ''"/>
+                                <td t-out="fu.advised_by.name or ''"/>
+                                <td>
+                                    <t t-call="santhigiri_hms.patient_portal_badge">
+                                        <t t-set="badge_record" t-value="fu"/>
+                                        <t t-set="badge_field" t-value="'status'"/>
+                                        <t t-set="badge_value" t-value="fu.status"/>
+                                    </t>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <p class="small text-muted mt-3">
+                To attend a follow-up, please book an appointment on or near the advised date.
+            </p>
+        </t>
+    </template>
+
+    <!-- ═══════════════════════════════════════════════════════════════════
+         Bills
+         ═══════════════════════════════════════════════════════════════════ -->
+    <template id="patient_portal_bills" name="Patient Portal: Bills">
+        <t t-call="santhigiri_hms.patient_portal_layout">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h3 class="mb-0">Bills</h3>
+                <div class="text-end">
+                    <small class="text-muted d-block">Total amount due</small>
+                    <span t-attf-class="fs-4 fw-bold #{'text-danger' if amount_due else 'text-success'}"
+                          t-out="amount_due" t-options="{'widget': 'monetary', 'display_currency': currency}"/>
+                </div>
+            </div>
+            <div class="card">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light"><tr><th>Number</th><th>Date</th><th>Description</th><th class="text-end">Total</th><th class="text-end">Due</th><th>Payment</th><th/></tr></thead>
+                        <tbody>
+                            <tr t-if="not moves"><td colspan="7" class="text-muted">No bills yet.</td></tr>
+                            <tr t-foreach="moves" t-as="move">
+                                <td>
+                                    <t t-out="move.name"/>
+                                    <small t-if="move.move_type == 'out_refund'" class="badge text-bg-secondary ms-1">Credit note</small>
+                                </td>
+                                <td t-out="move.invoice_date" t-options="{'widget': 'date'}"/>
+                                <td class="small" t-out="move.ref or (move.invoice_line_ids[:1].name if move.invoice_line_ids else '')"/>
+                                <td class="text-end" t-out="move.amount_total" t-options="{'widget': 'monetary', 'display_currency': move.currency_id}"/>
+                                <td class="text-end" t-out="move.amount_residual" t-options="{'widget': 'monetary', 'display_currency': move.currency_id}"/>
+                                <td>
+                                    <t t-call="santhigiri_hms.patient_portal_badge">
+                                        <t t-set="badge_record" t-value="move"/>
+                                        <t t-set="badge_field" t-value="'payment_state'"/>
+                                        <t t-set="badge_value" t-value="move.payment_state"/>
+                                    </t>
+                                </td>
+                                <td class="text-end"><a t-attf-href="/patient/bills/#{move.id}/pdf" class="btn btn-sm btn-outline-primary"><i class="fa fa-download"/></a></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <p class="small text-muted mt-3 mb-0">Payments can be made at the hospital billing counter.</p>
+        </t>
+    </template>
+
+    <!-- ═══════════════════════════════════════════════════════════════════
+         Create / change password
+         ═══════════════════════════════════════════════════════════════════ -->
+    <template id="patient_portal_password" name="Patient Portal: Password">
+        <t t-call="santhigiri_hms.patient_portal_layout">
+            <h3 class="mb-3"><t t-if="has_password">Change password</t><t t-else="">Create your password</t></h3>
+            <div class="row">
+                <div class="col-lg-7">
+                    <div t-if="error" class="alert alert-danger" role="alert" t-out="error"/>
+                    <div t-if="otp_expired" class="alert alert-warning" role="alert">
+                        For your security, please <a href="/patient/logout">log out</a> and
+                        log in again with a one-time code before creating a password.
+                    </div>
+                    <form t-else="" action="/patient/password" method="post" class="card">
+                        <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                        <div class="card-body">
+                            <p class="text-muted small">
+                                Your login ID is your Patient ID
+                                <strong t-out="patient.patient_seq"/>. Use at least 8
+                                characters; do not use your Patient ID or date of birth.
+                            </p>
+                            <input type="text" name="username" t-att-value="patient.patient_seq"
+                                   autocomplete="username" class="d-none" readonly="readonly"/>
+                            <div class="mb-3" t-if="need_old">
+                                <label class="form-label" for="old_password">Current password</label>
+                                <input type="password" class="form-control" id="old_password"
+                                       name="old_password" required="required" autocomplete="current-password"/>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label" for="new_password">New password</label>
+                                <input type="password" class="form-control" id="new_password"
+                                       name="new_password" required="required" minlength="8"
+                                       autocomplete="new-password"/>
+                            </div>
+                            <div class="mb-1">
+                                <label class="form-label" for="confirm_password">Confirm new password</label>
+                                <input type="password" class="form-control" id="confirm_password"
+                                       name="confirm_password" required="required" minlength="8"
+                                       autocomplete="new-password"/>
+                            </div>
+                        </div>
+                        <div class="card-footer bg-transparent d-flex justify-content-between align-items-center">
+                            <a t-if="not has_password and not must_set" href="/patient" class="small">Skip for now</a>
+                            <span t-else=""/>
+                            <button type="submit" class="btn btn-primary">Save password</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <!-- ═══════════════════════════════════════════════════════════════════
+         Profile
+         ═══════════════════════════════════════════════════════════════════ -->
+    <template id="patient_portal_profile" name="Patient Portal: Profile">
+        <t t-call="santhigiri_hms.patient_portal_layout">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h3 class="mb-0">My Profile</h3>
+                <a href="/patient/card" class="btn btn-outline-primary btn-sm"><i class="fa fa-id-card-o me-1"/>Download ID card</a>
+            </div>
+            <div class="row g-4">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header"><strong>Registered details</strong></div>
+                        <div class="card-body">
+                            <div class="row">
+                                <dl class="col-md-6 row mb-0">
+                                    <dt class="col-5">Patient ID</dt><dd class="col-7" t-out="patient.patient_seq"/>
+                                    <dt class="col-5">Name</dt><dd class="col-7" t-out="patient.name"/>
+                                    <dt class="col-5">Date of birth</dt>
+                                    <dd class="col-7"><t t-if="patient.date_of_birth" t-out="patient.date_of_birth" t-options="{'widget': 'date'}"/><t t-else="">—</t></dd>
+                                    <dt class="col-5">Age</dt><dd class="col-7" t-out="patient.age or '—'"/>
+                                </dl>
+                                <dl class="col-md-6 row mb-0">
+                                    <dt class="col-5">Gender</dt><dd class="col-7" t-out="selection_label(patient, 'gender') or '—'"/>
+                                    <dt class="col-5">Blood group</dt>
+                                    <dd class="col-7"><t t-out="selection_label(patient, 'blood_group') or '—'"/><t t-out="patient.rh_type or ''"/></dd>
+                                    <dt class="col-5">Mobile</dt><dd class="col-7" t-out="patient._portal_phone() or '—'"/>
+                                    <dt class="col-5">Allergies</dt><dd class="col-7" t-out="patient.allergy_summary or 'None recorded'"/>
+                                </dl>
+                            </div>
+                            <p class="small text-muted mt-3 mb-0">
+                                To change any of your details, please visit the reception
+                                with an ID proof.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-body d-flex justify-content-between align-items-center flex-wrap gap-2">
+                            <div>
+                                <strong>Login &amp; security</strong><br/>
+                                <small class="text-muted" t-if="patient.portal_password_set">
+                                    Password login is active. Login ID: <t t-out="patient.patient_seq"/>
+                                </small>
+                                <small class="text-muted" t-else="">
+                                    You have not created a password yet — you can only log in with a one-time code.
+                                </small>
+                            </div>
+                            <a href="/patient/password" class="btn btn-outline-primary btn-sm">
+                                <i class="fa fa-key me-1"/>
+                                <t t-if="patient.portal_password_set">Change password</t><t t-else="">Create password</t>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+</odoo>
