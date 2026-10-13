@@ -39,6 +39,9 @@ class HospitalProcedurePrescription(models.Model):
                                     domain=[('is_procedure', '=', True)], required=True)
     no_of_sessions = fields.Integer(string='Total Sessions', required=True, default=7)
     start_date = fields.Date(string='Start Date', required=True, default=fields.Date.today)
+    #add end date
+    end_date = fields.Date(string='End Date', required=True, default=fields.Date.today)
+    
     instructions = fields.Text(string='Special Instructions')
     site_location = fields.Char(string='Site / Location',
                                  help='e.g. Lower back, Left knee, Full body')

@@ -34,3 +34,5 @@ from . import patient_emr
 from . import op_assessment
 from . import op_reassessment
 from . import patient_portal
+
+from . import lab_test_date_report_wizard
