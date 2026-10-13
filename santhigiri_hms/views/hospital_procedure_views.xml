@@ -38,6 +38,7 @@
                             <field name="procedure_id"/>
                             <field name="no_of_sessions"/>
                             <field name="start_date"/>
+                            <field name="end_date"/>
                             <field name="billing_mode"/>
                             <field name="session_rate" widget="monetary"/>
                         </group>

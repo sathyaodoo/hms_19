@@ -34,6 +34,7 @@
         'views/hospital_bed_views.xml',
         'views/product_template_views.xml',
         'views/lab_test_views.xml',
+        'views/lab_test_date_report_wizard_views.xml',
         'views/hr_employee_views.xml',
         'views/res_partner_views.xml',
         'views/fee_master_views.xml',
@@ -57,6 +58,7 @@
         'views/op_assessment_views.xml',
         'views/reassessment_views.xml',
         'views/lab_test_category_views.xml',
+        
 
         # Reports
         'reports/patient_card_override.xml',
@@ -68,6 +70,7 @@
         'reports/ncism_reports.xml',
         'reports/santhigiri_custom_reports.xml',
         'reports/report_assessment.xml',
+        'reports/lab_test_datewise_report.xml',
         'reports/reassessment_report.xml',
         'reports/portal_prescription_report.xml',
     ],
