@@ -56,6 +56,9 @@
         'views/hospital_pharmacy_views.xml',
         'views/patient_emr_views.xml',
         'views/op_assessment_views.xml',
+        'views/ip_assessment_views.xml',
+        'views/ip_reassessment_views.xml',
+        'views/ip_assessment_smart_buttons.xml',
         'views/reassessment_views.xml',
         'views/lab_test_category_views.xml',
         
@@ -70,8 +73,10 @@
         'reports/ncism_reports.xml',
         'reports/santhigiri_custom_reports.xml',
         'reports/report_assessment.xml',
+        'reports/ip_assessment_report.xml',
         'reports/lab_test_datewise_report.xml',
         'reports/reassessment_report.xml',
+        'reports/ip_reassessment_report.xml',
         'reports/portal_prescription_report.xml',
     ],
     #'assets': {
