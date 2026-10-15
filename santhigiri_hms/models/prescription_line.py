@@ -49,3 +49,10 @@ class PrescriptionLine(models.Model):
         string='Pathya-Apathya',
         help='Dietary do\'s (Pathya) and don\'ts (Apathya) for this medicine/course',
     )
+    
+    # Links to IP Reassessment (Form SAMC/CS/14)
+    ip_reassessment_id = fields.Many2one(
+        'hospital.ip.reassessment',
+        string='IP Reassessment',
+        ondelete='cascade',
+    )
