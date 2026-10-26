@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- Add is_procedure field to product form
+    <!-- Add is_procedure and Prakarana fields to product form
          Inherits base_hospital_management product view which has medicine_ok -->
     <record id="view_product_template_santhigiri" model="ir.ui.view">
         <field name="name">product.template.santhigiri.form</field>
@@ -11,6 +11,11 @@
                 <field name="is_procedure"
                        string="Is Procedure / Therapy"
                        help="Mark as Panchakarma or therapy procedure"/>
+                <!-- Prakarana: visible only for Hospital company -->
+                <field name="show_prakarana" invisible="1"/>
+                <field name="prakarana"
+                       invisible="not show_prakarana"
+                       placeholder="Enter Prakarana"/>
             </xpath>
         </field>
     </record>
