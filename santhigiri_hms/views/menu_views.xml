@@ -102,10 +102,20 @@
               parent="base_hospital_management.hospital_menu_root"
               sequence="30"
               groups="base_hospital_management.base_hospital_management_group_manager,base_hospital_management.base_hospital_management_group_doctor,santhigiri_hms.group_rmo,santhigiri_hms.group_therapist,base_hospital_management.base_hospital_management_group_receptionist,base_hospital_management.base_hospital_management_group_nurse"/>
+    <menuitem id="menu_procedure_schedule" name="Procedure Schedule (Case Sheet)"
+              parent="menu_procedure_root"
+              action="action_hospital_procedure_schedule"
+              sequence="5"
+              groups="base_hospital_management.base_hospital_management_group_manager,base_hospital_management.base_hospital_management_group_doctor,santhigiri_hms.group_rmo,santhigiri_hms.group_therapist,base_hospital_management.base_hospital_management_group_receptionist,base_hospital_management.base_hospital_management_group_nurse"/>
     <menuitem id="menu_procedure_prescription" name="Procedure Prescriptions"
               parent="menu_procedure_root"
               action="action_procedure_prescription"
               sequence="10"
+              groups="base_hospital_management.base_hospital_management_group_manager,base_hospital_management.base_hospital_management_group_doctor,santhigiri_hms.group_rmo,santhigiri_hms.group_therapist,base_hospital_management.base_hospital_management_group_receptionist,base_hospital_management.base_hospital_management_group_nurse"/>
+    <menuitem id="menu_daily_procedure_master" name="Procedure / Therapy Master"
+              parent="menu_procedure_root"
+              action="action_hospital_procedure_master"
+              sequence="20"
               groups="base_hospital_management.base_hospital_management_group_manager,base_hospital_management.base_hospital_management_group_doctor,santhigiri_hms.group_rmo,santhigiri_hms.group_therapist,base_hospital_management.base_hospital_management_group_receptionist,base_hospital_management.base_hospital_management_group_nurse"/>
 
     <!-- Food Management -->

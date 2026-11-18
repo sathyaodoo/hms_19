@@ -6,20 +6,20 @@
               groups="base_hospital_management.base_hospital_management_group_lab_assistant,base_hospital_management.base_hospital_management_group_pharmacist,base_hospital_management.base_hospital_management_group_nurse,base_hospital_management.base_hospital_management_group_doctor,base_hospital_management.base_hospital_management_group_receptionist,base_hospital_management.base_hospital_management_group_manager"
               name="Hospital Management"/>
     <!--    Appointment menu-->
-    <menuitem id="hospital_menu_appointment" name="Appointment"
+    <menuitem id="hospital_menu_appointment" name="Appointments"
               parent="hospital_menu_root"
-              sequence="2"/>
+              sequence="1"/>
     <!--    Patient menu-->
     <menuitem id="appointment_menu_patient" name="Patient"
               parent="hospital_menu_appointment"
-              sequence="1"/>
+              sequence="2"/>
     <!--    Laboratory menu-->
     <menuitem id="hospital_menu_laboratory" name="Laboratory"
               parent="hospital_menu_root"
               sequence="3"/>
     <!--    Infrastructure menu-->
     <menuitem id="hospital_menu_infrastructure" name="Infrastructure"
-              groups="base_hospital_management.base_hospital_management_group_manager"
+              groups="base_hospital_management.base_hospital_management_group_lab_assistant,base_hospital_management.base_hospital_management_group_pharmacist,base_hospital_management.base_hospital_management_group_nurse,base_hospital_management.base_hospital_management_group_doctor,base_hospital_management.base_hospital_management_group_receptionist,base_hospital_management.base_hospital_management_group_manager"
               parent="hospital_menu_root" sequence="4"/>
     <menuitem name="Report" id="hospital_report" parent="hospital_menu_root"
               sequence="6"/>

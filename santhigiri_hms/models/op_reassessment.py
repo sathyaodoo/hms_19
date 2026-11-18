@@ -36,9 +36,31 @@ class HospitalOPReassessment(models.Model):
                                            compute='_compute_datetime_display')
     assessment_time_display = fields.Char(string='Time (Display)',
                                            compute='_compute_datetime_display')
-    uhid_no = fields.Char(string='UHID No.')
-    cop_no = fields.Char(string='COP No.')
-    dop_no = fields.Char(string='DOP No.')
+    uhid_no = fields.Char(
+        string='UHID No.',
+        related='outpatient_id.uhid_no',
+        store=True,
+        readonly=True,
+    )
+    cop_no = fields.Char(
+        string='COP No.',
+        related='outpatient_id.cop_no',
+        store=True,
+        readonly=True,
+    )
+    dop_no = fields.Char(
+        string='DOP No.',
+        related='outpatient_id.dop_no',
+        store=True,
+        readonly=True,
+    )
+    department_id = fields.Many2one(
+        'hr.department',
+        string='Department',
+        related='outpatient_id.department_id',
+        store=True,
+        readonly=True,
+    )
 
     # ── Observations ──────────────────────────────────────────────────────────
     bp = fields.Char(string='BP', help='e.g. 120/80 mmHg')
@@ -54,7 +76,12 @@ class HospitalOPReassessment(models.Model):
         ('draft', 'Draft'),
         ('confirmed', 'Confirmed by Consultant'),
     ], default='draft', string='Status', tracking=True)
-    consultant_signoff_id = fields.Many2one('hr.employee', string='Consultant (Signature)')
+    consultant_signoff_id = fields.Many2one('hr.employee', string='Consultant')
+    consultant_signature = fields.Binary(
+        string='Consultant Signature',
+        attachment=True,
+        help='Digital signature of the consultant',
+    )
     signoff_date = fields.Date(string='Date')
     signoff_time = fields.Char(string='Time')
 
@@ -81,9 +108,16 @@ class HospitalOPReassessment(models.Model):
     def action_confirm(self):
         for rec in self:
             rec.state = 'confirmed'
-            rec.consultant_signoff_id = rec.doctor_id.employee_id.id \
-                if rec.doctor_id and rec.doctor_id.employee_id else rec.consultant_signoff_id
+            consultant = False
+            if rec.doctor_id and hasattr(rec.doctor_id, 'doctor_id') and rec.doctor_id.doctor_id:
+                consultant = rec.doctor_id.doctor_id
+            elif self.env.user.employee_id:
+                consultant = self.env.user.employee_id
+            if consultant:
+                rec.consultant_signoff_id = consultant.id
             rec.signoff_date = fields.Date.today()
+            local_now = fields.Datetime.context_timestamp(rec, fields.Datetime.now())
+            rec.signoff_time = local_now.strftime('%I:%M %p')
             if rec.followup_id:
                 rec.followup_id.action_mark_attended()
 

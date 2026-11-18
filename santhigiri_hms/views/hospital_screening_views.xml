@@ -1,0 +1,365 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ══ PATIENT SCREENING FORM VIEW ═════════════════════════════════════ -->
+    <record id="view_hospital_patient_screening_form" model="ir.ui.view">
+        <field name="name">hospital.patient.screening.form</field>
+        <field name="model">hospital.patient.screening</field>
+        <field name="arch" type="xml">
+            <form string="Patient Screening (NCISM OPD)">
+                <header>
+                    <button name="action_start_screening" type="object"
+                            string="Start Screening" class="btn btn-primary"
+                            invisible="state != 'draft'"/>
+                    <button name="action_mark_screened" type="object"
+                            string="Mark Screened" class="btn btn-success"
+                            invisible="state != 'in_progress'"/>
+                    <button name="action_move_to_op" type="object"
+                            string="Move to OP" class="btn btn-danger fw-bold"
+                            invisible="state in ['op_created', 'cancel']"
+                            icon="fa-user-md"/>
+                    <button name="action_cancel" type="object"
+                            string="Cancel"
+                            invisible="state in ['op_created', 'cancel']"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,in_progress,screened,op_created"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_open_op_record" type="object"
+                                class="oe_stat_button" icon="fa-user-md"
+                                invisible="not outpatient_id">
+                            <span class="o_stat_text">OP Record</span>
+                        </button>
+                    </div>
+
+                    <div class="oe_title">
+                        <span class="o_form_label text-muted">Patient OPD Screening (NCISM Criteria)</span>
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
+
+                    <!-- Patient & Screener Information -->
+                    <group>
+                        <group string="Patient Information">
+                            <field name="patient_id"
+                                   domain="[('patient_seq', '!=', False), ('patient_seq', 'not in', ['New', 'Employee', 'User']), ('is_company', '=', False)]"
+                                   options="{'no_create': True, 'no_create_edit': True}"/>
+                            <field name="uhid_no"/>
+                            <field name="patient_phone" widget="phone"/>
+                            <field name="patient_age"/>
+                            <field name="patient_gender"/>
+                            <field name="patient_category"/>
+                        </group>
+                        <group string="Screening Context (Clause c &amp; f)">
+                            <field name="date"/>
+                            <field name="counter_no" placeholder="e.g. Counter 1, Counter 2..."/>
+                            <field name="screened_by_role"/>
+                            <field name="screened_by_id" options="{'no_create': True}"/>
+                            <field name="intern_id" options="{'no_create': True}"
+                                   invisible="screened_by_role != 'intern'"/>
+                        </group>
+                    </group>
+
+                    <!-- Departmental Routing & Triage (Clause d) -->
+                    <group string="Departmental Criteria &amp; Routing (Clause d)">
+                        <group>
+                            <field name="department_id" options="{'no_create': True}"/>
+                            <field name="specialty_opd" placeholder="e.g. Spine Clinic, Diabetic Clinic..."/>
+                        </group>
+                        <group>
+                            <field name="doctor_id" options="{'no_create': True}"/>
+                            <field name="triage_priority" widget="badge"
+                                   decoration-danger="triage_priority == 'emergency'"
+                                   decoration-warning="triage_priority == 'urgent'"
+                                   decoration-info="triage_priority == 'priority'"
+                                   decoration-success="triage_priority == 'routine'"/>
+                        </group>
+                    </group>
+
+                    <!-- Clinical Parameters, Vitals & Naadi Recording (Clause e) -->
+                    <notebook>
+                        <!-- Tab 1: Chief Complaints -->
+                        <page string="Chief Complaints" name="complaints">
+                            <group string="Presenting Complaints &amp; Duration">
+                                <field name="chief_complaints" nolabel="1"
+                                       placeholder="Enter chief complaints and duration (e.g. C/O burning micturition since 3 days, intermittent lower backache since 2 weeks)..."/>
+                            </group>
+                            <separator string="Complaints Breakdown Table"/>
+                            <field name="complaint_ids">
+                                <list editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="name" string="Chief Complaint"/>
+                                    <field name="duration" string="Duration"/>
+                                    <field name="notes" string="Severity / Modality / Notes"/>
+                                </list>
+                            </field>
+                        </page>
+
+                        <!-- Tab 2: Vitals & Physical Parameters -->
+                        <page string="Physical Parameters &amp; Vitals" name="vitals">
+                            <group>
+                                <group string="Anthropometry">
+                                    <label for="height" string="Height"/>
+                                    <div class="d-flex align-items-center gap-1">
+                                        <field name="height" placeholder="Height"/>
+                                        <span class="text-muted">cm</span>
+                                    </div>
+
+                                    <label for="weight" string="Weight"/>
+                                    <div class="d-flex align-items-center gap-1">
+                                        <field name="weight" placeholder="Weight"/>
+                                        <span class="text-muted">kg</span>
+                                    </div>
+
+                                    <field name="bmi" readonly="1"/>
+                                    <field name="bmi_category" widget="badge"
+                                           decoration-success="bmi_category == 'normal'"
+                                           decoration-warning="bmi_category in ['overweight', 'underweight']"
+                                           decoration-danger="bmi_category == 'obese'"/>
+                                </group>
+
+                                <group string="Vital Signs">
+                                    <label for="bp_systolic" string="Blood Pressure (Sys / Dia)"/>
+                                    <div class="d-flex align-items-center gap-1">
+                                        <field name="bp_systolic" placeholder="Systolic" style="width: 80px;"/>
+                                        <span class="fw-bold text-muted">/</span>
+                                        <field name="bp_diastolic" placeholder="Diastolic" style="width: 80px;"/>
+                                        <span class="text-muted">mmHg</span>
+                                    </div>
+                                    <field name="blood_pressure" invisible="1"/>
+
+                                    <label for="pulse" string="Pulse / Heart Rate"/>
+                                    <div class="d-flex align-items-center gap-1">
+                                        <field name="pulse" placeholder="Pulse"/>
+                                        <span class="text-muted">bpm</span>
+                                    </div>
+
+                                    <label for="temperature" string="Temperature"/>
+                                    <div class="d-flex align-items-center gap-1">
+                                        <field name="temperature" placeholder="98.4"/>
+                                        <span class="text-muted">°F</span>
+                                    </div>
+
+                                    <label for="respiratory_rate" string="Respiratory Rate"/>
+                                    <div class="d-flex align-items-center gap-1">
+                                        <field name="respiratory_rate" placeholder="RR"/>
+                                        <span class="text-muted">/min</span>
+                                    </div>
+
+                                    <label for="spo2" string="SpO2"/>
+                                    <div class="d-flex align-items-center gap-1">
+                                        <field name="spo2" placeholder="SpO2"/>
+                                        <span class="text-muted">%</span>
+                                    </div>
+
+                                    <label for="blood_sugar_rbs" string="Blood Sugar (RBS)"/>
+                                    <div class="d-flex align-items-center gap-1">
+                                        <field name="blood_sugar_rbs" placeholder="RBS"/>
+                                        <span class="text-muted">mg/dL</span>
+                                    </div>
+                                </group>
+                            </group>
+                        </page>
+
+                        <!-- Tab 3: Naadi Recording (Clause e) -->
+                        <page string="Naadi Recording (Pulse Pariksha)" name="naadi">
+                            <group string="Naadi Recording Equipment (Clause e)">
+                                <group>
+                                    <field name="naadi_equipment_used"/>
+                                    <field name="naadi_equipment_name"
+                                           invisible="not naadi_equipment_used"/>
+                                </group>
+                                <group>
+                                    <field name="naadi_type"/>
+                                    <field name="naadi_gati"/>
+                                    <field name="naadi_rate"/>
+                                </group>
+                            </group>
+                            <group string="Naadi Examination Observations">
+                                <field name="naadi_findings" nolabel="1"
+                                       placeholder="Record detailed observations from Naadi sensor / equipment (e.g. Vata dominance with Sarpa Gati, Manduka Gati during evening, pulse depth, rhythm, Bala)..."/>
+                            </group>
+                        </page>
+
+                        <!-- Tab 4: Basic Ayurvedic Parameters & Remarks -->
+                        <page string="Basic Ayurvedic Parameters" name="ayur_params">
+                            <group string="Ashtavidha Pariksha Basic Indicators">
+                                <group>
+                                    <field name="tongue_jihva"/>
+                                    <field name="bowel_koshtha"/>
+                                </group>
+                                <group>
+                                    <field name="appetite_agni"/>
+                                </group>
+                            </group>
+                            <group string="Screening Remarks / OPD Recommendation">
+                                <field name="screening_notes" nolabel="1"
+                                       placeholder="Any additional screening observations, preliminary doshic assessment, or instructions for the OPD consultant..."/>
+                            </group>
+                        </page>
+                    </notebook>
+
+                    <!-- Big CTA Box to Move to OP -->
+                    <div class="alert alert-info d-flex align-items-center justify-content-between p-3 mt-4"
+                         role="alert"
+                         invisible="state in ['op_created', 'cancel']">
+                        <div>
+                            <h6 class="fw-bold mb-1"><i class="fa fa-stethoscope me-2"/>Ready to Send Patient to OPD?</h6>
+                            <span class="small">Clicking <strong>Move to OP</strong> will create the Outpatient Consultation record with all complaints, vitals, Naadi, and department details transferred automatically.</span>
+                        </div>
+                        <button name="action_move_to_op" type="object"
+                                string="Move to OP" class="btn btn-danger btn-lg fw-bold px-4"
+                                icon="fa-arrow-right"/>
+                    </div>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- ══ PATIENT SCREENING LIST VIEW ═════════════════════════════════════ -->
+    <record id="view_hospital_patient_screening_list" model="ir.ui.view">
+        <field name="name">hospital.patient.screening.list</field>
+        <field name="model">hospital.patient.screening</field>
+        <field name="arch" type="xml">
+            <list string="Patient Screenings"
+                  decoration-info="state == 'in_progress'"
+                  decoration-success="state == 'screened'"
+                  decoration-muted="state == 'op_created'">
+                <field name="name" string="Ref"/>
+                <field name="date" string="Date &amp; Time"/>
+                <field name="counter_no" string="Counter"/>
+                <field name="patient_id" string="Patient"/>
+                <field name="uhid_no" string="UHID No." optional="show"/>
+                <field name="patient_phone" string="Phone" optional="show"/>
+                <field name="department_id" string="Recommended OPD"/>
+                <field name="triage_priority" string="Priority" widget="badge"
+                       decoration-danger="triage_priority == 'emergency'"
+                       decoration-warning="triage_priority == 'urgent'"
+                       decoration-info="triage_priority == 'priority'"
+                       decoration-success="triage_priority == 'routine'"/>
+                <field name="blood_pressure" string="BP" optional="show"/>
+                <field name="pulse" string="Pulse" optional="show"/>
+                <field name="temperature" string="Temp" optional="show"/>
+                <field name="bmi" string="BMI" optional="show"/>
+                <field name="naadi_type" string="Naadi" optional="show"/>
+                <field name="screened_by_role" string="Screener Category" optional="hide"/>
+                <field name="screened_by_id" string="Screened By" optional="show"/>
+                <field name="state" string="Status" widget="badge"
+                       decoration-info="state == 'in_progress'"
+                       decoration-success="state == 'screened'"
+                       decoration-primary="state == 'op_created'"
+                       decoration-muted="state in ['draft', 'cancel']"/>
+                <button name="action_move_to_op" type="object"
+                        string="Move to OP" icon="fa-arrow-right"
+                        class="btn btn-sm btn-outline-danger"
+                        invisible="state in ['op_created', 'cancel']"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ══ PATIENT SCREENING SEARCH VIEW ═══════════════════════════════════ -->
+    <record id="view_hospital_patient_screening_search" model="ir.ui.view">
+        <field name="name">hospital.patient.screening.search</field>
+        <field name="model">hospital.patient.screening</field>
+        <field name="arch" type="xml">
+            <search string="Search Patient Screenings">
+                <field name="name" string="Screening Ref"/>
+                <field name="patient_id" string="Patient"/>
+                <field name="uhid_no" string="UHID No."/>
+                <field name="patient_phone" string="Phone"/>
+                <field name="department_id" string="Department"/>
+                <field name="screened_by_id" string="Screened By"/>
+                <field name="counter_no" string="Counter"/>
+
+                <separator/>
+                <filter string="Today's Screenings" name="today"
+                        domain="[('date', '&gt;=', context_today().strftime('%Y-%m-%d 00:00:00')),
+                                 ('date', '&lt;=', context_today().strftime('%Y-%m-%d 23:59:59'))]"/>
+                <filter string="Waiting / Under Screening" name="waiting"
+                        domain="[('state', 'in', ['draft', 'in_progress'])]"/>
+                <filter string="Screened (Ready for OP)" name="ready_for_op"
+                        domain="[('state', '=', 'screened')]"/>
+                <filter string="Moved to OP" name="moved_to_op"
+                        domain="[('state', '=', 'op_created')]"/>
+
+                <separator/>
+                <filter string="Priority / Urgent" name="priority_cases"
+                        domain="[('triage_priority', 'in', ['priority', 'urgent', 'emergency'])]"/>
+
+                <group name="group_by">
+                    <filter string="Department (OPD)" name="group_dept" context="{'group_by': 'department_id'}"/>
+                    <filter string="Status" name="group_state" context="{'group_by': 'state'}"/>
+                    <filter string="Triage Priority" name="group_priority" context="{'group_by': 'triage_priority'}"/>
+                    <filter string="Counter No." name="group_counter" context="{'group_by': 'counter_no'}"/>
+                    <filter string="Screened By Role" name="group_screener_role" context="{'group_by': 'screened_by_role'}"/>
+                    <filter string="Screening Date" name="group_date" context="{'group_by': 'date:day'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- ══ ACTIONS ═════════════════════════════════════════════════════════ -->
+
+    <!-- Today's Screening Queue Action (Default View) -->
+    <record id="action_hospital_screening_today" model="ir.actions.act_window">
+        <field name="name">Today's Screening Queue</field>
+        <field name="res_model">hospital.patient.screening</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_hospital_patient_screening_search"/>
+        <field name="context">{'search_default_today': 1, 'search_default_waiting': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No patients in today's screening queue.
+            </p>
+            <p>
+                Record initial patient screening (Chief complaints, Vitals, Naadi recording, BMI) and route patients to the appropriate Ayurveda OPD with a single click.
+            </p>
+        </field>
+    </record>
+
+    <!-- All Screenings Action -->
+    <record id="action_hospital_screening_all" model="ir.actions.act_window">
+        <field name="name">All Patient Screenings</field>
+        <field name="res_model">hospital.patient.screening</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_hospital_patient_screening_search"/>
+        <field name="context">{}</field>
+    </record>
+
+    <!-- New Screening Action -->
+    <record id="action_hospital_screening_new" model="ir.actions.act_window">
+        <field name="name">New Screening Entry</field>
+        <field name="res_model">hospital.patient.screening</field>
+        <field name="view_mode">form</field>
+        <field name="target">current</field>
+    </record>
+
+    <!-- ══ MENUS: PLACED RIGHT AFTER APPOINTMENTS (SEQUENCE 2) ═════════════ -->
+
+    <menuitem id="menu_hospital_screening_root"
+              name="Screening"
+              parent="base_hospital_management.hospital_menu_root"
+              sequence="2"/>
+
+    <menuitem id="menu_hospital_screening_today"
+              name="Screening Queue (Today)"
+              parent="menu_hospital_screening_root"
+              action="action_hospital_screening_today"
+              sequence="1"/>
+
+    <menuitem id="menu_hospital_screening_all"
+              name="All Screenings"
+              parent="menu_hospital_screening_root"
+              action="action_hospital_screening_all"
+              sequence="2"/>
+
+    <menuitem id="menu_hospital_screening_new"
+              name="New Screening"
+              parent="menu_hospital_screening_root"
+              action="action_hospital_screening_new"
+              sequence="3"/>
+
+</odoo>

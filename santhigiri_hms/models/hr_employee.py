@@ -33,6 +33,10 @@ class HrEmployee(models.Model):
         string='Is Intern / Student',
         help='Medical intern from affiliated college',
     )
+    device_id_num = fields.Char(
+        string='Biometric Device ID',
+        help='Biometric hardware device user ID',
+    )
     # Used by internship module
     intern_id = fields.Many2one(
         'hospital.intern',

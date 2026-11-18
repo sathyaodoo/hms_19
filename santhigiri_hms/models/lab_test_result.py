@@ -197,6 +197,10 @@ class LabTestLine(models.Model):
         string='Clinical Notes',
         help="Doctor's notes for the lab technician",
     )
+    impressions = fields.Char(
+        string='Impressions',
+        help='Lab impression or preliminary findings',
+    )
 
 class PatientLabTestInvoiceOverride(models.Model):
     """Override create_invoice to include external lab charges."""

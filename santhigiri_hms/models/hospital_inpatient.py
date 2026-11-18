@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from odoo import api, fields, models
 from odoo.exceptions import UserError, ValidationError
+from .hospital_procedure_schedule import TIME_SLOTS
 
 
 class HospitalInpatient(models.Model):
@@ -42,6 +43,184 @@ class HospitalInpatient(models.Model):
                                     string='Follow-Up Records')
     service_charge = fields.Monetary(string='Service Charges', currency_field='currency_id')
     ot_charge = fields.Monetary(string='OT / Surgical Charges', currency_field='currency_id')
+    ward_round_ids = fields.One2many('hospital.intern.ward.round', 'inpatient_id',
+                                      string='Ward Round Logs')
+    observer_intern_ids = fields.Many2many(
+        'hospital.intern',
+        'inpatient_observer_intern_rel',
+        'inpatient_id', 'intern_id',
+        string='Observing Interns',
+    )
+
+    # ── Identifiers & Department ───────────────────────────────────────────────
+    uhid_no = fields.Char(related='patient_id.uhid_no', store=True, readonly=True, string='UHID No.')
+    cop_no = fields.Char(string='COP No.')
+    dop_no = fields.Char(string='DOP No.')
+    source_op_id = fields.Many2one(
+        'hospital.outpatient',
+        string='Source OP Record',
+        readonly=True,
+        copy=False,
+        help='OP Consultation from which this patient was admitted',
+    )
+    department_id = fields.Many2one(
+        'hr.department',
+        related='attending_doctor_id.department_id',
+        store=True,
+        readonly=True,
+        string='Department',
+    )
+
+    # ── Initial Assessment Link ───────────────────────────────────────────────
+    assessment_ids = fields.One2many(
+        'hospital.op.assessment',
+        'inpatient_id',
+        string='Initial Assessments',
+    )
+    assessment_count = fields.Integer(
+        string='Assessment Count',
+        compute='_compute_assessment_count',
+    )
+    review_date = fields.Date(string='Review Date')
+
+    # ── Procedure Schedule Link ───────────────────────────────────────────────
+    procedure_schedule_ids = fields.One2many(
+        'hospital.procedure.schedule',
+        'inpatient_id',
+        string='Procedure Schedules',
+    )
+    procedure_schedule_count = fields.Integer(
+        string='Procedure Schedules Count',
+        compute='_compute_procedure_schedule_count',
+    )
+
+    def _compute_procedure_schedule_count(self):
+        for rec in self:
+            rec.procedure_schedule_count = len(rec.procedure_schedule_ids)
+
+    def action_open_procedure_schedule(self):
+        """Open existing Procedure Schedule, or create+open a new one for this IP admission."""
+        self.ensure_one()
+        schedule = self.procedure_schedule_ids[:1]
+        if not schedule:
+            schedule = self.env['hospital.procedure.schedule'].create({
+                'schedule_type': 'inpatient',
+                'inpatient_id': self.id,
+                'patient_id': self.patient_id.id,
+                'visit_date': self.hosp_date or fields.Date.today(),
+            })
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Case Sheet (Procedure Schedule)',
+            'res_model': 'hospital.procedure.schedule',
+            'res_id': schedule.id,
+            'view_mode': 'form',
+            'target': 'current',
+        }
+
+    # ── Quick Add Procedure / Treatment Plan Controls ─────────────────────────
+    quick_proc_date = fields.Date(string='Date', default=fields.Date.today)
+    quick_proc_start_time = fields.Selection(TIME_SLOTS, string='Start Time', default='09:00:00 AM')
+    quick_proc_end_time = fields.Selection(TIME_SLOTS, string='End Time', default='10:00:00 AM')
+    quick_proc_duration = fields.Char(string='Duration', default='45m')
+    quick_proc_procedure_id = fields.Many2one('product.template', string='Procedure',
+                                              domain=[('is_procedure', '=', True)])
+    quick_proc_room_id = fields.Many2one('patient.room', string='Treatment Room')
+    quick_proc_staff_ids = fields.Many2many('hr.employee', 'inpatient_quick_proc_staff_rel',
+                                            'inpatient_id', 'staff_id', string='Staff / Therapists')
+    quick_proc_location = fields.Char(string='Location / Site')
+    quick_proc_notes = fields.Text(string='Clinical Notes / Instructions')
+
+    # Quick Medicines 1, 2, 3
+    quick_proc_med_1 = fields.Many2one('product.template', string='Medicine 1',
+                                       domain=[('medicine_ok', '=', True)])
+    quick_proc_dose_1 = fields.Char(string='Dosage 1')
+    quick_proc_unit_1 = fields.Char(string='Unit 1')
+
+    quick_proc_med_2 = fields.Many2one('product.template', string='Medicine 2',
+                                       domain=[('medicine_ok', '=', True)])
+    quick_proc_dose_2 = fields.Char(string='Dosage 2')
+    quick_proc_unit_2 = fields.Char(string='Unit 2')
+
+    quick_proc_med_3 = fields.Many2one('product.template', string='Medicine 3',
+                                       domain=[('medicine_ok', '=', True)])
+    quick_proc_dose_3 = fields.Char(string='Dosage 3')
+    quick_proc_unit_3 = fields.Char(string='Unit 3')
+
+    def action_quick_add_procedure(self):
+        """Adds a procedure session to Treatment Plan & Procedure Schedule."""
+        self.ensure_one()
+        if not self.quick_proc_procedure_id:
+            raise UserError("Please select a Procedure / Therapy first.")
+        plan_vals = {
+            'inpatient_id': self.id,
+            'procedure_id': self.quick_proc_procedure_id.id,
+            'date': self.quick_proc_date or fields.Date.today(),
+            'start_date': self.quick_proc_date or fields.Date.today(),
+            'start_time': self.quick_proc_start_time or '09:00:00 AM',
+            'end_time': self.quick_proc_end_time or '10:00:00 AM',
+            'duration': self.quick_proc_duration or '45m',
+            'location_site': self.quick_proc_location or '',
+            'notes': self.quick_proc_notes or '',
+            'instructions': self.quick_proc_notes or '',
+            'treatment_room_id': self.quick_proc_room_id.id if self.quick_proc_room_id else False,
+            'medicine_id_1': self.quick_proc_med_1.id if self.quick_proc_med_1 else False,
+            'dosage_1': self.quick_proc_dose_1 or '',
+            'unit_1': self.quick_proc_unit_1 or '',
+            'medicine_id_2': self.quick_proc_med_2.id if self.quick_proc_med_2 else False,
+            'dosage_2': self.quick_proc_dose_2 or '',
+            'unit_2': self.quick_proc_unit_2 or '',
+            'medicine_id_3': self.quick_proc_med_3.id if self.quick_proc_med_3 else False,
+            'dosage_3': self.quick_proc_dose_3 or '',
+            'unit_3': self.quick_proc_unit_3 or '',
+            'staff_ids': [(6, 0, self.quick_proc_staff_ids.ids)],
+            'therapist_ids': [(6, 0, self.quick_proc_staff_ids.ids)],
+            'status': 'scheduled',
+            'state': 'active',
+        }
+        self.env['hospital.treatment.plan'].create(plan_vals)
+        self.write({
+            'quick_proc_procedure_id': False,
+            'quick_proc_med_1': False,
+            'quick_proc_dose_1': '',
+            'quick_proc_unit_1': '',
+            'quick_proc_med_2': False,
+            'quick_proc_dose_2': '',
+            'quick_proc_unit_2': '',
+            'quick_proc_med_3': False,
+            'quick_proc_dose_3': '',
+            'quick_proc_unit_3': '',
+            'quick_proc_duration': '45m',
+            'quick_proc_location': '',
+            'quick_proc_notes': '',
+            'quick_proc_room_id': False,
+            'quick_proc_staff_ids': [(5, 0, 0)],
+        })
+        return True
+
+    def _compute_assessment_count(self):
+        for rec in self:
+            rec.assessment_count = len(rec.assessment_ids)
+
+    def action_open_assessment(self):
+        """Open existing assessment, or create+open a new one for this IP admission."""
+        self.ensure_one()
+        assessment = self.assessment_ids[:1]
+        if not assessment:
+            assessment = self.env['hospital.op.assessment'].create({
+                'assessment_type': 'inpatient',
+                'inpatient_id': self.id,
+                'patient_id': self.patient_id.id,
+                'doctor_id': self.attending_doctor_id.id if self.attending_doctor_id else False,
+            })
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Initial Assessment Sheet - IP',
+            'res_model': 'hospital.op.assessment',
+            'res_id': assessment.id,
+            'view_mode': 'form',
+            'target': 'current',
+        }
 
     @api.depends('food_supply_ids.charge')
     def _compute_food_charges_total(self):
@@ -72,6 +251,18 @@ class HospitalInpatient(models.Model):
                 )
 
     # ── write() — update room states on room change ────────────────────────────
+    # def write(self, vals):
+    #     if 'room_id' in vals:
+    #         for rec in self:
+    #             old_room = rec.room_id
+    #             new_room_id = vals.get('room_id')
+    #             if (old_room and new_room_id and
+    #                     old_room.id != new_room_id and
+    #                     rec.state in ('reserve', 'admit', 'invoice')):
+    #                 old_room.sudo().write({'state': 'avail'})
+    #                 self.env['patient.room'].browse(new_room_id).sudo().write({'state': 'not'})
+    #     return super().write(vals)
+    
     def write(self, vals):
         if 'room_id' in vals:
             for rec in self:
@@ -82,7 +273,27 @@ class HospitalInpatient(models.Model):
                         rec.state in ('reserve', 'admit', 'invoice')):
                     old_room.sudo().write({'state': 'avail'})
                     self.env['patient.room'].browse(new_room_id).sudo().write({'state': 'not'})
-        return super().write(vals)
+        res = super().write(vals)
+        # Auto-create case log when interns added to IP ward round
+        if vals.get('observer_intern_ids'):
+            for rec in self:
+                for intern in rec.observer_intern_ids:
+                    existing = self.env['hospital.case.log'].search([
+                        ('intern_id', '=', intern.id),
+                        ('inpatient_id', '=', rec.id),
+                        ('source', '=', 'ward_round'),
+                    ], limit=1)
+                    if not existing:
+                        self.env['hospital.case.log'].create({
+                            'intern_id': intern.id,
+                            'date': fields.Date.today(),
+                            'source': 'ward_round',
+                            'case_type': 'general',
+                            'exposure_type': 'observed',
+                            'inpatient_id': rec.id,
+                            'summary': 'IP Ward Round: ' + rec.name + ' — ' + (rec.patient_id.name or ''),
+                        })
+        return res
 
     # ── Admit ──────────────────────────────────────────────────────────────────
     def action_admit(self):

@@ -409,7 +409,7 @@
                                         <td><t t-esc="result.test_id.name if result.test_id else '-'"/></td>
                                         <td><strong><t t-esc="result.result or '-'"/></strong></td>
                                         <td><t t-esc="result.normal or '-'"/></td>
-                                        <td><t t-esc="result.unit or '-'"/></td>
+                                                                                <td><t t-esc="result.uom_id.name or '-'"/></td>
                                         <td><t t-esc="'⚠ YES' if result.is_abnormal else 'No'"/></td>
                                     </tr>
                                 </t>

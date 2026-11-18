@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- Add is_procedure field to product form
-         Inherits base_hospital_management product view which has medicine_ok -->
+    <!-- Add procedure and Ayurvedic medicine fields to product form -->
     <record id="view_product_template_santhigiri" model="ir.ui.view">
         <field name="name">product.template.santhigiri.form</field>
         <field name="model">product.template</field>
@@ -11,7 +10,44 @@
                 <field name="is_procedure"
                        string="Is Procedure / Therapy"
                        help="Mark as Panchakarma or therapy procedure"/>
+                <field name="procedure_category"
+                       invisible="not is_procedure"/>
+                <field name="standard_sessions"
+                       invisible="not is_procedure"/>
+                <field name="duration_minutes"
+                       invisible="not is_procedure"/>
+                <field name="ayurvedic_category"
+                       invisible="not medicine_ok"/>
+                <field name="default_anupanam"
+                       invisible="not medicine_ok"/>
+                <field name="default_route"
+                       invisible="not medicine_ok"/>
             </xpath>
         </field>
     </record>
+
+    <!-- Procedure / Therapy Master Action -->
+    <record id="action_hospital_procedure_master" model="ir.actions.act_window">
+        <field name="name">Procedure / Therapy Master</field>
+        <field name="res_model">product.template</field>
+        <field name="view_mode">list,kanban,form</field>
+        <field name="domain">[('is_procedure', '=', True)]</field>
+        <field name="context">{'default_is_procedure': True, 'default_type': 'service'}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create a new Procedure or Therapy Master
+            </p>
+            <p>
+                Configure Panchakarma therapies, Kriya Kalpa, and daily procedures with standard rates and session counts.
+            </p>
+        </field>
+    </record>
+
+    <!-- Menus for Procedure Master -->
+    <menuitem id="menu_config_procedure_master"
+              name="Procedure / Therapy Master"
+              parent="base_hospital_management.hospital_menu_configuration"
+              action="action_hospital_procedure_master"
+              sequence="4"
+              groups="base_hospital_management.base_hospital_management_group_manager,base_hospital_management.base_hospital_management_group_receptionist"/>
 </odoo>

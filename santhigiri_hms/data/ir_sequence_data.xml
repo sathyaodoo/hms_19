@@ -36,5 +36,53 @@
             <field name="padding">4</field>
             <field name="number_increment">1</field>
         </record>
+        <!-- Appointment Sequence -->
+        <record id="seq_hospital_appointment" model="ir.sequence">
+            <field name="name">Hospital Appointment Reference</field>
+            <field name="code">hospital.appointment</field>
+            <field name="prefix">APT/%(year)s/</field>
+            <field name="padding">4</field>
+            <field name="number_increment">1</field>
+        </record>
+        <!-- Unique Health ID (UHID) Sequence -->
+        <record id="seq_santhigiri_uhid" model="ir.sequence">
+            <field name="name">Hospital Patient UHID</field>
+            <field name="code">santhigiri.uhid</field>
+            <field name="prefix">UHID/%(year)s/</field>
+            <field name="padding">5</field>
+            <field name="number_increment">1</field>
+        </record>
+        <!-- Central Outpatient (COP) Sequence -->
+        <record id="seq_santhigiri_cop" model="ir.sequence">
+            <field name="name">Central OP (COP) Number</field>
+            <field name="code">santhigiri.cop</field>
+            <field name="prefix">COP/%(year)s/</field>
+            <field name="padding">5</field>
+            <field name="number_increment">1</field>
+        </record>
+        <!-- Department Outpatient (DOP) Sequence -->
+        <record id="seq_santhigiri_dop" model="ir.sequence">
+            <field name="name">Department OP (DOP) Number</field>
+            <field name="code">santhigiri.dop</field>
+            <field name="prefix">DOP/%(year)s/</field>
+            <field name="padding">5</field>
+            <field name="number_increment">1</field>
+        </record>
+        <!-- Procedure Schedule Sequence -->
+        <record id="seq_hospital_procedure_schedule" model="ir.sequence">
+            <field name="name">Hospital Procedure Schedule Reference</field>
+            <field name="code">hospital.procedure.schedule</field>
+            <field name="prefix">PSCHED/%(year)s/</field>
+            <field name="padding">4</field>
+            <field name="number_increment">1</field>
+        </record>
+        <!-- Patient Screening Sequence -->
+        <record id="seq_hospital_screening" model="ir.sequence">
+            <field name="name">Hospital Patient Screening Reference</field>
+            <field name="code">hospital.patient.screening</field>
+            <field name="prefix">SCR/%(year)s/</field>
+            <field name="padding">5</field>
+            <field name="number_increment">1</field>
+        </record>
     </data>
 </odoo>

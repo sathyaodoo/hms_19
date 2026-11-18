@@ -221,7 +221,7 @@
                                                  style="height:600px; margin-left:6rem; width: 37rem; overflow-y: scroll; ">
                                                 <t t-foreach="state.med"
                                                    t-as="med"
-                                                   t-key="med[4]">
+                                                   t-key="med_index">
                                                     <div class="card"
                                                          style="width: 11rem; height: 15rem; margin-top: 1rem;margin-right: 2rem;">
                                                         <div class="card-body"

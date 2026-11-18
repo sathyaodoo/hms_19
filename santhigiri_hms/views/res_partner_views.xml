@@ -13,6 +13,24 @@
         </field>
     </record>
 
+    <!-- ── Patient Tree / List view extension ───────────────────────────── -->
+    <record id="view_partner_patient_tree_santhigiri" model="ir.ui.view">
+        <field name="name">res.partner.patient.tree.santhigiri</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base_hospital_management.res_partner_view_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='patient_seq']" position="after">
+                <field name="uhid_no"/>
+            </xpath>
+            <xpath expr="//field[@name='gender']" position="after">
+                <field name="patient_category" widget="badge"/>
+                <field name="claim" widget="badge"
+                       decoration-success="claim == 'yes'"
+                       decoration-muted="claim == 'no'"/>
+            </xpath>
+        </field>
+    </record>
+
     <!-- ── Patient form extension ─────────────────────────────────────────── -->
     <record id="view_partner_patient_santhigiri" model="ir.ui.view">
         <field name="name">res.partner.santhigiri.patient</field>
@@ -27,6 +45,11 @@
                     <strong>&#9888; ALLERGY ALERT:</strong>
                     <field name="allergy_summary" readonly="1"/>
                 </div>
+            </xpath>
+
+            <!-- UHID in header title next to patient_seq -->
+            <xpath expr="//field[@name='patient_seq']" position="after">
+                <field name="uhid_no" placeholder="UHID No." readonly="1"/>
             </xpath>
 
             <!-- 2. Add Nationality + ID fields after marital_status
@@ -75,6 +98,12 @@
                 <page string="Santhigiri Classification"
                       name="santhigiri_classification">
                     <group>
+                        <group string="Patient Registration &amp; Category">
+                            <field name="patient_category"/>
+                            <field name="claim" widget="radio"/>
+                            <field name="referred_by"/>
+                            <field name="uhid_no" readonly="1"/>
+                        </group>
                         <group string="Patient Classification">
                             <field name="vulnerability"/>
                             <field name="payward_preference"/>
@@ -122,4 +151,43 @@
             </list>
         </field>
     </record>
+
+    <!-- ── Menu Order & Renaming:
+         1. Appointments (sequence 1)
+         2. Screening (sequence 2, defined in hospital_screening_views.xml)
+         3. Registration / Reception (sequence 3)
+         4. Laboratory (sequence 4)
+         5. Infrastructure (sequence 5)
+         6. Report (sequence 6)
+         7. Configuration (sequence 7) ────────────────────────── -->
+    <menuitem id="base_hospital_management.hospital_menu_appointment"
+              name="Appointments"
+              parent="base_hospital_management.hospital_menu_root"
+              sequence="1"/>
+
+    <menuitem id="base_hospital_management.res_partner_menu"
+              name="Registration / Reception"
+              parent="base_hospital_management.hospital_menu_root"
+              action="base_hospital_management.res_partner_action"
+              sequence="3"/>
+
+    <menuitem id="base_hospital_management.hospital_menu_laboratory"
+              name="Laboratory"
+              parent="base_hospital_management.hospital_menu_root"
+              sequence="4"/>
+
+    <menuitem id="base_hospital_management.hospital_menu_infrastructure"
+              name="Infrastructure"
+              parent="base_hospital_management.hospital_menu_root"
+              sequence="5"/>
+
+    <menuitem id="base_hospital_management.hospital_report"
+              name="Report"
+              parent="base_hospital_management.hospital_menu_root"
+              sequence="6"/>
+
+    <menuitem id="base_hospital_management.hospital_menu_configuration"
+              name="Configuration"
+              parent="base_hospital_management.hospital_menu_root"
+              sequence="7"/>
 </odoo>

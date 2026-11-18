@@ -67,8 +67,14 @@
 
         <table class="table table-borderless table-sm mt-4">
             <tr>
-                <td colspan="2"><strong>Name and signature of the Consultant:</strong>
-                    <t t-esc="doc.consultant_signoff_id.name or ''"/></td>
+                <td colspan="2">
+                    <strong>Name and signature of the Consultant:</strong><br/>
+                    <span t-esc="doc.consultant_signoff_id.name or ''"/><br/>
+                    <t t-if="doc.consultant_signature">
+                        <img t-att-src="image_data_uri(doc.consultant_signature)"
+                             style="max-height: 50px; max-width: 180px; margin-top: 3px;"/>
+                    </t>
+                </td>
             </tr>
             <tr>
                 <td><strong>Date:</strong> <t t-esc="doc.signoff_date"/></td>

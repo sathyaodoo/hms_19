@@ -19,6 +19,38 @@ from odoo.exceptions import ValidationError
 class ResPartner(models.Model):
     _inherit = 'res.partner'
 
+    # ── UHID & Registration Fields ──────────────────────────────────────────
+    uhid_no = fields.Char(
+        string='UHID No.',
+        copy=False,
+        index=True,
+        help='Unique Health ID / Hospital ID permanent for this patient',
+    )
+    claim = fields.Selection(
+        selection=[('yes', 'Yes'), ('no', 'No')],
+        string='Claim (Insurance / Mediclaim)',
+        default='no',
+        help='Indicates whether patient has insurance / mediclaim / TPA claim',
+    )
+    referred_by = fields.Char(
+        string='Referred By',
+        help='Doctor, Clinic, Hospital, or Person who referred the patient',
+    )
+    patient_category = fields.Selection(
+        selection=[
+            ('jeevanam', 'Jeevanam'),
+            ('payward', 'Pay Ward'),
+            ('amrutham', 'Amrutham'),
+            ('general', 'General'),
+            ('vip', 'VIP'),
+            ('senior_citizen', 'Senior Citizen'),
+            ('bpl', 'BPL / Karunyam'),
+            ('ardram', 'Ardram'),
+        ],
+        string='Patient Category',
+        default='jeevanam',
+    )
+
     # ── Age (computed from base module's date_of_birth) ──────────────────────
     age = fields.Integer(string='Age', compute='_compute_age', store=True)
     age_manual = fields.Integer(
@@ -199,6 +231,37 @@ class ResPartner(models.Model):
                         f'Patient ID: {dup[0].patient_seq}\n'
                         f'Please check if this is a duplicate registration.'
                     )
+
+    # ── Create & Auto-generate UHID ───────────────────────────────────────────
+    @api.model_create_multi
+    def create(self, vals_list):
+        for vals in vals_list:
+            if not vals.get('uhid_no') and vals.get('patient_seq') not in ('Employee', 'User'):
+                vals['uhid_no'] = self.env['ir.sequence'].next_by_code('santhigiri.uhid') or ''
+        partners = super().create(vals_list)
+        for partner in partners:
+            if not partner.uhid_no and partner.patient_seq not in ('Employee', 'User', False):
+                partner.uhid_no = self.env['ir.sequence'].next_by_code('santhigiri.uhid') or partner.patient_seq or ''
+        return partners
+
+    @api.depends('name', 'uhid_no', 'patient_seq')
+    def _compute_display_name(self):
+        super()._compute_display_name()
+        for record in self:
+            code = record.uhid_no or (record.patient_seq if record.patient_seq not in ('Employee', 'User', 'New') else False)
+            if code and record.name:
+                record.display_name = f'[{code}] {record.name}'
+
+    @api.model
+    def _name_search(self, name, domain=None, operator='ilike', limit=None, order=None):
+        domain = domain or []
+        if name:
+            domain = ['|', '|', '|',
+                      ('name', operator, name),
+                      ('uhid_no', operator, name),
+                      ('patient_seq', operator, name),
+                      ('phone', operator, name)] + domain
+        return super()._name_search(name, domain=domain, operator=operator, limit=limit, order=order)
 
     # ── Computed Methods ───────────────────────────────────────────────────────
     @api.depends('allergy_ids')

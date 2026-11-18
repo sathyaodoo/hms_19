@@ -6,11 +6,27 @@
         <field name="inherit_id" ref="base_hospital_management.hospital_inpatient_view_form"/>
         <field name="arch" type="xml">
 
-            <!-- 1. Add patient_category right after patient_id -->
+            <!-- Initial Assessment & Procedure Schedule Stat Buttons in button_box -->
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_open_assessment" type="object"
+                        class="oe_stat_button" icon="fa-stethoscope">
+                    <field name="assessment_count" widget="statinfo" string="Initial Assessment"/>
+                </button>
+                <button name="action_open_procedure_schedule" type="object"
+                        class="oe_stat_button" icon="fa-calendar-check-o">
+                    <field name="procedure_schedule_count" widget="statinfo" string="Procedure Schedule"/>
+                </button>
+            </xpath>
+
+            <!-- 1. Add patient_category, uhid_no, department_id, review_date right after patient_id -->
             <xpath expr="//field[@name='patient_id']" position="after">
+                <field name="uhid_no" readonly="1"/>
                 <field name="patient_category"
                        required="1"
                        string="IP Category"/>
+                <field name="department_id" readonly="1"/>
+                <field name="source_op_id" readonly="1" invisible="not source_op_id"/>
+                <field name="review_date" string="Review Date"/>
             </xpath>
 
             <!-- Add ot_charge after operating_doctor_id -->
@@ -69,16 +85,113 @@
             <!-- 6. New tabs after Nursing Plan -->
             <xpath expr="//page[@name='Nursing Plan']" position="after">
                 <page string="Treatment Plan (Procedures)" name="treatment_plan">
-                    <field name="treatment_plan_ids">
-                        <list string="Treatment Plans">
-                            <field name="procedure_id" string="Procedure / Therapy"/>
-                            <field name="frequency"/>
-                            <field name="no_of_sessions" string="Sessions"/>
-                            <field name="completed_sessions" string="Done"/>
-                            <field name="therapist_ids" widget="many2many_tags" string="Therapist(s)"/>
-                            <field name="rmo_approved" string="RMO ✓"/>
-                            <field name="procedure_charge" widget="monetary" string="Charge"/>
-                            <field name="state" widget="badge"/>
+                    <!-- Top header with link to full schedule -->
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="fw-bold text-primary m-0">
+                            <i class="fa fa-bed me-2"/>TREATMENT PLAN &amp; PROCEDURE SCHEDULE
+                        </h5>
+                        <button name="action_open_procedure_schedule" type="object"
+                                string="Open Case Sheet (Procedure Schedule)"
+                                class="btn btn-outline-primary btn-sm"
+                                icon="fa-calendar-check-o"/>
+                    </div>
+
+                    <!-- Quick Schedule Procedure Session (Native Full-Width Odoo Groups) -->
+                    <group string="Schedule Procedure Session" class="mt-2">
+                        <group string="Timing &amp; Procedure">
+                            <field name="quick_proc_date" string="Date"/>
+                            <label for="quick_proc_start_time" string="Time Slot"/>
+                            <div class="d-flex align-items-center gap-2">
+                                <field name="quick_proc_start_time" placeholder="Start Time" class="w-50"/>
+                                <span class="text-muted fw-bold">to</span>
+                                <field name="quick_proc_end_time" placeholder="End Time" class="w-50"/>
+                            </div>
+                            <field name="quick_proc_duration" string="Duration" placeholder="e.g. 45m"/>
+                            <field name="quick_proc_procedure_id" string="Procedure"
+                                   context="{'default_is_procedure': True, 'default_type': 'service'}"
+                                   options="{'no_create': False, 'no_quick_create': False}"
+                                   placeholder="Select Procedure..."/>
+                        </group>
+                        <group string="Room, Staff &amp; Location">
+                            <field name="quick_proc_room_id" string="Treatment Room" options="{'no_create': True}" placeholder="Select Room..."/>
+                            <field name="quick_proc_staff_ids" widget="many2many_tags" string="Staff / Therapists" placeholder="Choose Staff..."/>
+                            <field name="quick_proc_location" string="Location / Site" placeholder="e.g. All joints, Head, Back..."/>
+                            <field name="quick_proc_notes" string="Clinical Notes" placeholder="e.g. E/A-HRIDAYARENJINI or instructions..."/>
+                        </group>
+                    </group>
+
+                    <group string="Medicines &amp; Consumables (Used in Session)">
+                        <group>
+                            <label for="quick_proc_med_1" string="Medicine 1"/>
+                            <div class="d-flex align-items-center gap-2">
+                                <field name="quick_proc_med_1"
+                                       context="{'default_medicine_ok': True, 'default_type': 'consu'}"
+                                       options="{'no_create': False, 'no_quick_create': False}"
+                                       placeholder="Medicine 1..." style="flex: 2;"/>
+                                <field name="quick_proc_dose_1" placeholder="Dose (e.g. 10)" style="flex: 1;"/>
+                                <field name="quick_proc_unit_1" placeholder="Unit (ml)" style="flex: 1;"/>
+                            </div>
+                            <label for="quick_proc_med_2" string="Medicine 2"/>
+                            <div class="d-flex align-items-center gap-2">
+                                <field name="quick_proc_med_2"
+                                       context="{'default_medicine_ok': True, 'default_type': 'consu'}"
+                                       options="{'no_create': False, 'no_quick_create': False}"
+                                       placeholder="Medicine 2..." style="flex: 2;"/>
+                                <field name="quick_proc_dose_2" placeholder="Dose" style="flex: 1;"/>
+                                <field name="quick_proc_unit_2" placeholder="Unit" style="flex: 1;"/>
+                            </div>
+                            <label for="quick_proc_med_3" string="Medicine 3"/>
+                            <div class="d-flex align-items-center gap-2">
+                                <field name="quick_proc_med_3"
+                                       context="{'default_medicine_ok': True, 'default_type': 'consu'}"
+                                       options="{'no_create': False, 'no_quick_create': False}"
+                                       placeholder="Medicine 3..." style="flex: 2;"/>
+                                <field name="quick_proc_dose_3" placeholder="Dose" style="flex: 1;"/>
+                                <field name="quick_proc_unit_3" placeholder="Unit" style="flex: 1;"/>
+                            </div>
+                        </group>
+                        <group>
+                            <div class="d-flex flex-column align-items-center justify-content-center h-100 p-3 bg-light rounded border text-center">
+                                <p class="text-muted small mb-3">
+                                    Fill the session details above and click below to add this procedure session to the Treatment Plan &amp; Schedule.
+                                </p>
+                                <button name="action_quick_add_procedure" type="object"
+                                        string="+ Add to Schedule / Plan"
+                                        class="btn btn-primary btn-lg fw-bold px-4 py-2"/>
+                            </div>
+                        </group>
+                    </group>
+
+                    <!-- Scheduled Procedure Sessions Table (Identical format to Procedure Schedule) -->
+                    <field name="treatment_plan_ids" class="mt-3">
+                        <list editable="bottom" create="1" delete="1"
+                              decoration-info="status == 'updated'"
+                              decoration-success="status == 'done'"
+                              decoration-warning="status == 'in_progress'"
+                              decoration-muted="status == 'cancelled'">
+                            <field name="date" string="Date"/>
+                            <field name="start_time" string="Start Time"/>
+                            <field name="end_time" string="End Time"/>
+                            <field name="procedure_id" string="Procedure"
+                                   context="{'default_is_procedure': True, 'default_type': 'service'}"
+                                   options="{'no_create': False, 'no_quick_create': False}"/>
+                            <field name="medicine_display" string="Medicine" readonly="1"/>
+                            <field name="duration" string="Duration"/>
+                            <field name="location_site" string="Location / Site"/>
+                            <field name="notes" string="Notes"/>
+                            <field name="treatment_room_id" string="Treatment Room" options="{'no_create': True}"/>
+                            <field name="staff_display" string="Staff" readonly="1"/>
+                            <field name="status" string="Status" widget="badge"
+                                   decoration-info="status == 'updated'"
+                                   decoration-success="status == 'done'"
+                                   decoration-warning="status == 'in_progress'"
+                                   decoration-muted="status == 'scheduled'"/>
+                            <button name="action_repeat" type="object" string="Repeat"
+                                    class="btn btn-sm btn-outline-secondary py-0 px-2"
+                                    title="Repeat this session on the next day"/>
+                            <button name="action_delete" type="object" string="Delete"
+                                    class="btn btn-sm btn-outline-danger py-0 px-2"
+                                    title="Delete this scheduled session"/>
                         </list>
                     </field>
                 </page>
@@ -92,7 +205,9 @@
                             confirm="Send all Medication Plan medicines to the IP Pharmacy for dispensing?"/>
                     <field name="medication_plan_ids">
                         <list editable="bottom">
-                            <field name="medicine_id" string="Medicine"/>
+                            <field name="medicine_id" string="Medicine"
+                                   context="{'default_medicine_ok': True, 'default_type': 'consu'}"
+                                   options="{'no_create': False, 'no_quick_create': False}"/>
                             <field name="dosage"/>
                             <field name="frequency"/>
                             <field name="duration_days" string="Days"/>
@@ -144,6 +259,25 @@
                         </list>
                     </field>
                 </page>
+                                <page string="Observing Interns" name="ip_interns">
+                    <field name="observer_intern_ids" widget="many2many_tags"
+                           domain="[('state','=','active')]"
+                           string="Interns observing this patient"/>
+                    <separator string="Ward Round Logs"/>
+                    <field name="ward_round_ids" readonly="1">
+                        <list>
+                            <field name="date"/>
+                            <field name="intern_id" string="Intern"/>
+                            <field name="supervising_doctor_id" string="Supervisor"/>
+                            <field name="bp_systolic" string="BP Sys"/>
+                            <field name="bp_diastolic" string="BP Dia"/>
+                            <field name="temperature" string="Temp"/>
+                            <field name="bmi"/>
+                            <field name="is_signed_off" string="Signed"/>
+                        </list>
+                    </field>
+                </page>
+
 
                 <page string="Room Transfers" name="room_transfers">
                     <field name="room_transfer_ids">
@@ -185,6 +319,32 @@
                 <attribute name="groups">base_hospital_management.base_hospital_management_group_manager,base_hospital_management.base_hospital_management_group_doctor,base_hospital_management.base_hospital_management_group_receptionist,base_hospital_management.base_hospital_management_group_nurse,santhigiri_hms.group_rmo</attribute>
             </xpath>
 
+        </field>
+    </record>
+
+    <!-- Inpatient Tree View Extension with Initial Assessment Button & Key Patient Details -->
+    <record id="view_inpatient_tree_santhigiri" model="ir.ui.view">
+        <field name="name">hospital.inpatient.tree.santhigiri</field>
+        <field name="model">hospital.inpatient</field>
+        <field name="inherit_id" ref="base_hospital_management.hospital_inpatient_view_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='name']" position="after">
+                <field name="patient_id"/>
+                <field name="uhid_no"/>
+                <field name="patient_category" widget="badge"/>
+                <field name="attending_doctor_id"/>
+                <button name="action_open_assessment" type="object"
+                        string="Initial Assessment"
+                        icon="fa-stethoscope"
+                        class="btn-primary btn-sm"/>
+                <button name="action_open_procedure_schedule" type="object"
+                        string="Procedure Schedule"
+                        icon="fa-calendar-check-o"
+                        class="btn-success btn-sm"/>
+            </xpath>
+            <xpath expr="//field[@name='discharge_date']" position="after">
+                <field name="state" widget="badge"/>
+            </xpath>
         </field>
     </record>
 </odoo>

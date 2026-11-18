@@ -57,9 +57,14 @@
                     </field>
 
                     <group string="Sign-off" invisible="state != 'confirmed'">
-                        <field name="consultant_signoff_id"/>
-                        <field name="signoff_date"/>
-                        <field name="signoff_time"/>
+                        <group>
+                            <field name="consultant_signoff_id"/>
+                            <field name="signoff_date"/>
+                            <field name="signoff_time"/>
+                        </group>
+                        <group>
+                            <field name="consultant_signature" widget="signature"/>
+                        </group>
                     </group>
                 </sheet>
                 <chatter/>

@@ -11,6 +11,7 @@
             <field name="interval_type">days</field>
             <field name="active">True</field>
         </record>
+
         <!-- Auto-mark missed follow-ups -->
         <record id="cron_mark_missed_followups" model="ir.cron">
             <field name="name">HMS: Mark Missed Follow-Ups</field>
@@ -21,30 +22,43 @@
             <field name="interval_type">days</field>
             <field name="active">True</field>
         </record>
-        <!-- Low stock alert for pharmacist -->
+
+        <!-- Low stock alert — Odoo 19 compatible, no return, no import -->
         <record id="cron_low_stock_alert" model="ir.cron">
             <field name="name">HMS: Pharmacy Low Stock Alert</field>
             <field name="model_id" ref="stock.model_stock_warehouse_orderpoint"/>
             <field name="state">code</field>
             <field name="code">
-pharmacist_group = env.ref('base_hospital_management.group_pharmacist', raise_if_not_found=False)
+pharmacist_group = env.ref('base_hospital_management.base_hospital_management_group_pharmacist', raise_if_not_found=False)
 if pharmacist_group:
     orderpoints = env['stock.warehouse.orderpoint'].search([])
     low_items = []
+    seen = set()
     for op in orderpoints:
+        if op.product_min_qty &lt;= 0:
+            continue
+        key = op.product_id.id
+        if key in seen:
+            continue
+        seen.add(key)
         qty = op.product_id.qty_available
         if qty &lt;= op.product_min_qty:
-            low_items.append(f'{op.product_id.name}: {qty} (min: {op.product_min_qty})')
+            low_items.append(op.product_id.name + ': ' + str(int(qty)) + ' (min: ' + str(int(op.product_min_qty)) + ')')
     if low_items:
-        users = env['res.users'].search([('groups_id', 'in', pharmacist_group.ids)])
-        for user in users:
-            if user.partner_id.email:
-                env['mail.mail'].create({
-                    'subject': 'Low Stock Alert — Pharmacy',
-                    'body_html': '&lt;p&gt;The following medicines are below minimum stock level:&lt;/p&gt;&lt;ul&gt;' +
-                                 ''.join(f'&lt;li&gt;{i}&lt;/li&gt;' for i in low_items) + '&lt;/ul&gt;',
-                    'email_to': user.partner_id.email,
-                }).send()
+        env.cr.execute(
+            "SELECT u.partner_id FROM res_users u JOIN res_groups_users_rel r ON r.uid = u.id WHERE r.gid = %s AND u.active = true",
+            (pharmacist_group.id,)
+        )
+        partner_ids = [row[0] for row in env.cr.fetchall()]
+        if partner_ids:
+            text = 'Low Stock Alert - Please raise a Purchase Orders:\n' + '\n'.join('* ' + i for i in low_items)
+            env['res.partner'].browse(partner_ids[0]).sudo().message_post(
+                body=text,
+                subject='Low Stock Alert',
+                message_type='comment',
+                subtype_xmlid='mail.mt_comment',
+                partner_ids=partner_ids,
+            )
             </field>
             <field name="interval_number">1</field>
             <field name="interval_type">days</field>

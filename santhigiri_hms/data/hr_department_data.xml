@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="dept_kayachikitsa" model="hr.department">
+            <field name="name">Kayachikitsa</field>
+        </record>
+        <record id="dept_panchakarma" model="hr.department">
+            <field name="name">Panchakarma</field>
+        </record>
+        <record id="dept_prasootitantra" model="hr.department">
+            <field name="name">Prasootitantra &amp; Striroga</field>
+        </record>
+        <record id="dept_kaumarbhrithya" model="hr.department">
+            <field name="name">Kaumarbhrithya (Balroga)</field>
+        </record>
+        <record id="dept_salyatantra" model="hr.department">
+            <field name="name">Salyatantra (Shalya Tantra)</field>
+        </record>
+        <record id="dept_salakyatantra" model="hr.department">
+            <field name="name">Salakyatantra (Shalakya Tantra)</field>
+        </record>
+        <record id="dept_swasthyarakshana" model="hr.department">
+            <field name="name">Swasthya Rakshana &amp; Yoga</field>
+        </record>
+        <record id="dept_casualty" model="hr.department">
+            <field name="name">Casualty</field>
+        </record>
+        <record id="dept_agadantantra" model="hr.department">
+            <field name="name">Agada Tantra</field>
+        </record>
+    </data>
+</odoo>

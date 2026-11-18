@@ -13,13 +13,14 @@ class HospitalFeeMaster(models.Model):
     _order = 'patient_category'
 
     patient_category = fields.Selection([
+        ('jeevanam', 'Jeevanam'),
+        ('payward', 'Pay Ward'),
+        ('amrutham', 'Amrutham'),
         ('general', 'General'),
         ('vip', 'VIP'),
         ('senior_citizen', 'Senior Citizen'),
         ('bpl', 'BPL / Karunyam'),
-        ('payward', 'Pay Ward'),
         ('ardram', 'Ardram'),
-        ('jeevanam', 'Jeevanam'),
     ], string='Patient Category', required=True)
     amount = fields.Monetary(string='Consultation Fee', required=True)
     currency_id = fields.Many2one('res.currency', default=lambda s: s.env.company.currency_id)

@@ -27,4 +27,9 @@ from . import lab_test_master
 from . import patient_emr
 from . import op_assessment
 from . import op_reassessment
+from . import hospital_appointment
+from . import hospital_prescription
+from . import hospital_procedure_schedule
+from . import nursing_station
+from . import hospital_screening
 

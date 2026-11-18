@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Prescription Master Form View -->
+    <record id="view_hospital_prescription_form" model="ir.ui.view">
+        <field name="name">hospital.prescription.form</field>
+        <field name="model">hospital.prescription</field>
+        <field name="arch" type="xml">
+            <form string="Prescription Master">
+                <header>
+                    <button name="action_confirm" type="object" string="Activate" class="btn-primary" invisible="state != 'draft'"/>
+                    <button name="action_dispense" type="object" string="Mark as Dispensed" class="btn-success" invisible="state != 'active'"/>
+                    <button name="action_cancel" type="object" string="Cancel" invisible="state in ('cancelled', 'dispensed')"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,active,dispensed"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name" string="Prescription Reference"/>
+                        <h1><field name="name"/></h1>
+                    </div>
+                    <group>
+                        <group string="Patient &amp; Prescribing Details">
+                            <field name="patient_id"/>
+                            <field name="uhid_no"/>
+                            <field name="doctor_id"/>
+                            <field name="department_id"/>
+                        </group>
+                        <group string="Visit &amp; Schedule">
+                            <field name="prescription_date"/>
+                            <field name="outpatient_id" invisible="not outpatient_id"/>
+                            <field name="inpatient_id" invisible="not inpatient_id"/>
+                            <field name="medicine_count"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Medicines Prescribed" name="medicines">
+                            <field name="prescription_line_ids">
+                                <list editable="bottom">
+                                    <field name="medicine_id"
+                                           context="{'default_medicine_ok': True, 'default_type': 'consu'}"
+                                           options="{'no_create': False, 'no_quick_create': False}"/>
+                                    <field name="route"/>
+                                    <field name="no_intakes" string="Dosage"/>
+                                    <field name="time" string="Frequency"/>
+                                    <field name="note" string="Food Timing"/>
+                                    <field name="anupanam" string="Anupanam"/>
+                                    <field name="duration_days" string="Days"/>
+                                    <field name="quantity" string="Qty"/>
+                                    <field name="pathya_apathya"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="General Advice &amp; Diet" name="advice">
+                            <field name="notes" placeholder="Enter general dietary instructions, Pathya-Apathya, or lifestyle advice for the patient..."/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- Prescription Master List View -->
+    <record id="view_hospital_prescription_tree" model="ir.ui.view">
+        <field name="name">hospital.prescription.list</field>
+        <field name="model">hospital.prescription</field>
+        <field name="arch" type="xml">
+            <list string="Prescriptions Master">
+                <field name="name"/>
+                <field name="prescription_date"/>
+                <field name="patient_id"/>
+                <field name="uhid_no"/>
+                <field name="doctor_id"/>
+                <field name="department_id"/>
+                <field name="outpatient_id"/>
+                <field name="inpatient_id"/>
+                <field name="medicine_count"/>
+                <field name="state" widget="badge"
+                       decoration-success="state == 'dispensed'"
+                       decoration-info="state == 'active'"
+                       decoration-muted="state == 'draft'"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Prescription Master Search View -->
+    <record id="view_hospital_prescription_search" model="ir.ui.view">
+        <field name="name">hospital.prescription.search</field>
+        <field name="model">hospital.prescription</field>
+        <field name="arch" type="xml">
+            <search string="Search Prescriptions">
+                <field name="name" string="Prescription / Reference"/>
+                <field name="patient_id" string="Patient"/>
+                <field name="uhid_no" string="UHID No."/>
+                <field name="doctor_id" string="Doctor"/>
+                <field name="department_id" string="Department"/>
+                <filter name="active_presc" string="Active Prescriptions" domain="[('state', '=', 'active')]"/>
+                <filter name="dispensed_presc" string="Dispensed" domain="[('state', '=', 'dispensed')]"/>
+                <filter name="today_presc" string="Today's Prescriptions" domain="[('prescription_date', '=', context_today())]"/>
+                <group name="group_by">
+                    <filter string="Patient" name="group_patient" context="{'group_by': 'patient_id'}"/>
+                    <filter string="Doctor" name="group_doctor" context="{'group_by': 'doctor_id'}"/>
+                    <filter string="Department" name="group_dept" context="{'group_by': 'department_id'}"/>
+                    <filter string="Date" name="group_date" context="{'group_by': 'prescription_date'}"/>
+                    <filter string="Status" name="group_state" context="{'group_by': 'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Prescription Master Action -->
+    <record id="action_hospital_prescription" model="ir.actions.act_window">
+        <field name="name">Prescriptions Master</field>
+        <field name="res_model">hospital.prescription</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create a new Prescription
+            </p>
+            <p>
+                View and manage all patient prescriptions, medication history, and dosage instructions.
+            </p>
+        </field>
+    </record>
+
+    <!-- Menus -->
+    <menuitem id="menu_hospital_prescriptions_master"
+              name="Prescriptions Master"
+              parent="base_hospital_management.hospital_menu_appointment"
+              action="action_hospital_prescription"
+              sequence="6"/>
+
+    <menuitem id="menu_config_prescriptions_master"
+              name="Prescriptions Master"
+              parent="base_hospital_management.hospital_menu_configuration"
+              action="action_hospital_prescription"
+              sequence="6"/>
+</odoo>

@@ -5,28 +5,79 @@
         <field name="name">hospital.treatment.plan.form</field>
         <field name="model">hospital.treatment.plan</field>
         <field name="arch" type="xml">
-            <form string="Treatment Plan">
+            <form string="Treatment Plan (Procedure Session)">
+                <header>
+                    <button name="action_repeat" type="object" string="Repeat on Next Day" class="btn btn-secondary" icon="fa-repeat"/>
+                    <field name="status" widget="statusbar" statusbar_visible="scheduled,in_progress,done"/>
+                </header>
                 <sheet>
+                    <div class="oe_title">
+                        <span class="o_form_label text-muted">Procedure Session</span>
+                        <h1>
+                            <field name="procedure_id" placeholder="Select Procedure..."/>
+                        </h1>
+                    </div>
                     <group>
-                        <group string="Procedure Details">
-                            <field name="procedure_id"/>
-                            <field name="frequency"/>
-                            <field name="no_of_sessions"/>
-                            <field name="start_date"/>
-                            <field name="state" widget="badge"/>
+                        <group string="Timing &amp; Location">
+                            <field name="date"/>
+                            <label for="start_time" string="Time Slot"/>
+                            <div class="d-flex align-items-center gap-2">
+                                <field name="start_time" placeholder="Start Time" class="w-50"/>
+                                <span class="text-muted fw-bold">to</span>
+                                <field name="end_time" placeholder="End Time" class="w-50"/>
+                            </div>
+                            <field name="duration" placeholder="e.g. 45m"/>
+                            <field name="location_site" placeholder="e.g. All joints, Head, Back..."/>
+                            <field name="treatment_room_id" options="{'no_create': True}"/>
                         </group>
-                        <group string="Assignment">
-                            <field name="therapist_ids" widget="many2many_tags"/>
-                            <field name="completed_sessions"/>
+                        <group string="Assignment &amp; Status">
+                            <field name="staff_ids" widget="many2many_tags" string="Staff / Therapists"/>
+                            <field name="inpatient_id" readonly="1" invisible="not inpatient_id"/>
+                            <field name="assessment_id" readonly="1" invisible="not assessment_id"/>
                             <field name="rmo_approved"/>
                             <field name="procedure_charge" widget="monetary"/>
                         </group>
                     </group>
-                    <field name="instructions" placeholder="Special instructions for this procedure..."/>
+
+                    <group string="Clinical Notes / Instructions">
+                        <field name="notes" nolabel="1" placeholder="Special instructions or clinical observations for this session..."/>
+                    </group>
+
+                    <group string="Medicines &amp; Consumables (Used in Session)">
+                        <group>
+                            <label for="medicine_id_1" string="Medicine 1"/>
+                            <div class="d-flex align-items-center gap-2">
+                                <field name="medicine_id_1"
+                                       context="{'default_medicine_ok': True, 'default_type': 'consu'}"
+                                       options="{'no_create': False, 'no_quick_create': False}"
+                                       placeholder="Medicine 1..." style="flex: 2;"/>
+                                <field name="dosage_1" placeholder="Dose" style="flex: 1;"/>
+                                <field name="unit_1" placeholder="Unit" style="flex: 1;"/>
+                            </div>
+                            <label for="medicine_id_2" string="Medicine 2"/>
+                            <div class="d-flex align-items-center gap-2">
+                                <field name="medicine_id_2"
+                                       context="{'default_medicine_ok': True, 'default_type': 'consu'}"
+                                       options="{'no_create': False, 'no_quick_create': False}"
+                                       placeholder="Medicine 2..." style="flex: 2;"/>
+                                <field name="dosage_2" placeholder="Dose" style="flex: 1;"/>
+                                <field name="unit_2" placeholder="Unit" style="flex: 1;"/>
+                            </div>
+                            <label for="medicine_id_3" string="Medicine 3"/>
+                            <div class="d-flex align-items-center gap-2">
+                                <field name="medicine_id_3"
+                                       context="{'default_medicine_ok': True, 'default_type': 'consu'}"
+                                       options="{'no_create': False, 'no_quick_create': False}"
+                                       placeholder="Medicine 3..." style="flex: 2;"/>
+                                <field name="dosage_3" placeholder="Dose" style="flex: 1;"/>
+                                <field name="unit_3" placeholder="Unit" style="flex: 1;"/>
+                            </div>
+                        </group>
+                    </group>
 
                     <notebook>
-                        <!-- Medicines for Procedure -->
-                        <page string="Medicines / Materials Required" name="medicines">
+                        <!-- Medicines for Procedure (Backward compatibility) -->
+                        <page string="Additional Materials" name="medicines" invisible="1">
                             <field name="procedure_medicine_ids">
                                 <list editable="bottom">
                                     <field name="medicine_id" string="Medicine / Material"/>
@@ -71,15 +122,34 @@
         <field name="name">hospital.treatment.plan.list</field>
         <field name="model">hospital.treatment.plan</field>
         <field name="arch" type="xml">
-            <list string="Treatment Plans">
-                <field name="procedure_id" string="Procedure / Therapy"/>
-                <field name="frequency"/>
-                <field name="no_of_sessions" string="Sessions"/>
-                <field name="completed_sessions" string="Completed"/>
-                <field name="therapist_ids" widget="many2many_tags" string="Therapist(s)"/>
-                <field name="rmo_approved" string="RMO ✓"/>
-                <field name="procedure_charge" widget="monetary" string="Charge"/>
-                <field name="state" widget="badge"/>
+            <list string="Treatment Plans" editable="bottom" create="1" delete="1"
+                  decoration-info="status == 'updated'"
+                  decoration-success="status == 'done'"
+                  decoration-warning="status == 'in_progress'"
+                  decoration-muted="status == 'cancelled'">
+                <field name="date" string="Date"/>
+                <field name="start_time" string="Start Time"/>
+                <field name="end_time" string="End Time"/>
+                <field name="procedure_id" string="Procedure"
+                       context="{'default_is_procedure': True, 'default_type': 'service'}"
+                       options="{'no_create': False, 'no_quick_create': False}"/>
+                <field name="medicine_display" string="Medicine" readonly="1"/>
+                <field name="duration" string="Duration"/>
+                <field name="location_site" string="Location / Site"/>
+                <field name="notes" string="Notes"/>
+                <field name="treatment_room_id" string="Treatment Room" options="{'no_create': True}"/>
+                <field name="staff_display" string="Staff" readonly="1"/>
+                <field name="status" string="Status" widget="badge"
+                       decoration-info="status == 'updated'"
+                       decoration-success="status == 'done'"
+                       decoration-warning="status == 'in_progress'"
+                       decoration-muted="status == 'scheduled'"/>
+                <button name="action_repeat" type="object" string="Repeat"
+                        class="btn btn-sm btn-outline-secondary py-0 px-2"
+                        title="Repeat this session on the next day"/>
+                <button name="action_delete" type="object" string="Delete"
+                        class="btn btn-sm btn-outline-danger py-0 px-2"
+                        title="Delete this scheduled session"/>
             </list>
         </field>
     </record>

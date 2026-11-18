@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <record id="action_report_op_assessment" model="ir.actions.report">
-        <field name="name">Initial Assessment Sheet - OP</field>
+        <field name="name">Initial Assessment Sheet</field>
         <field name="model">hospital.op.assessment</field>
         <field name="report_type">qweb-pdf</field>
         <field name="report_name">santhigiri_hms.report_op_assessment</field>
@@ -17,15 +17,23 @@
                         <div class="text-center">
                             <p>Gurucharanam Saranam</p>
                             <h3>Santhigiri Ayurveda Medical College Hospital</h3>
-                            <h4><i>Initial Assessment Sheet - O P</i></h4>
-                            <p>Form No : SAMC/CS/11</p>
+                            <h4><i>Initial Assessment Sheet - <t t-esc="'I P' if doc.assessment_type == 'inpatient' else 'O P'"/></i></h4>
+                            <p>Form No : <t t-esc="'SAMC/CS/IP/11' if doc.assessment_type == 'inpatient' else 'SAMC/CS/11'"/></p>
                         </div>
                         <table class="table table-borderless">
                             <tr>
-                                <td><strong>Date:</strong>
-                                    <t t-esc="doc.assessment_date_display"/></td>
-                                <td><strong>Time:</strong>
-                                    <t t-esc="doc.assessment_time_display"/></td>
+                                <td>
+                                    <strong t-if="doc.assessment_type == 'inpatient'">Date &amp; Time of Admission:</strong>
+                                    <strong t-else="">Date &amp; Time of Registration:</strong>
+                                    <t t-if="doc.assessment_type == 'inpatient'">
+                                        <t t-esc="doc.admission_date_display"/> <t t-esc="doc.admission_time_display"/>
+                                    </t>
+                                    <t t-else="">
+                                        <t t-esc="doc.registration_date_display"/> <t t-esc="doc.registration_time_display"/>
+                                    </t>
+                                </td>
+                                <td><strong>Date &amp; Time of Assessment:</strong>
+                                    <t t-esc="doc.assessment_date_display"/> <t t-esc="doc.assessment_time_display"/></td>
                             </tr>
                             <tr>
                                 <td colspan="2"><strong>Patient's Name:</strong>
@@ -37,10 +45,20 @@
                             </tr>
                             <tr>
                                 <td><strong>UHID No:</strong> <t t-esc="doc.uhid_no"/></td>
-                                <td><strong>COP No:</strong> <t t-esc="doc.cop_no"/></td>
+                                <td t-if="doc.assessment_type == 'inpatient'">
+                                    <strong>IP No:</strong> <t t-esc="doc.ip_no"/>
+                                </td>
+                                <td t-else="">
+                                    <strong>COP No:</strong> <t t-esc="doc.cop_no"/>
+                                </td>
                             </tr>
                             <tr>
-                                <td><strong>DOP No:</strong> <t t-esc="doc.dop_no"/></td>
+                                <td t-if="doc.assessment_type == 'inpatient'">
+                                    <strong>Ward / Bed:</strong> <t t-esc="(doc.ward_id.name or '') + ' / ' + (doc.bed_id.name or '')"/>
+                                </td>
+                                <td t-else="">
+                                    <strong>DOP No:</strong> <t t-esc="doc.dop_no"/>
+                                </td>
                                 <td><strong>Department:</strong>
                                     <t t-esc="doc.department_id.name or ''"/></td>
                             </tr>
@@ -74,7 +92,7 @@
                                        .get(doc.nutritional_screening, '')"/></p>
 
                         <p><strong>Presenting complaints and duration:</strong></p>
-                        <p><t t-esc="doc.presenting_complaints or doc.outpatient_id.chief_complaint or ''"/></p>
+                        <p><t t-esc="doc.presenting_complaints or (doc.outpatient_id.chief_complaint if doc.outpatient_id else False) or (doc.inpatient_id.reason if doc.inpatient_id else False) or ''"/></p>
 
                         <p><strong>Pain Assessment:</strong>
                             <t t-esc="dict(doc._fields['pain_score'].selection)
@@ -89,7 +107,7 @@
                         <p><strong>Investigations Recommended:</strong>
                             <t t-esc="doc.investigations_recommended or ''"/></p>
                         <p><strong>Diagnosis:</strong>
-                            <t t-esc="doc.outpatient_id.provisional_diagnosis or ''"/></p>
+                            <t t-esc="(doc.outpatient_id.provisional_diagnosis if doc.outpatient_id else False) or (doc.inpatient_id.reason if doc.inpatient_id else False) or ''"/></p>
 
                         <div style="page-break-before: always;"/>
 
@@ -117,7 +135,8 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <t t-foreach="doc.outpatient_id.prescription_ids" t-as="line">
+                                <t t-set="presc_lines" t-value="doc.prescription_ids or (doc.inpatient_id.prescription_ids if doc.assessment_type == 'inpatient' else doc.outpatient_id.prescription_ids)"/>
+                                <t t-foreach="presc_lines" t-as="line">
                                     <tr>
                                         <td><t t-esc="line_index + 1"/></td>
                                         <td><t t-esc="line.medicine_id.name"/></td>
@@ -136,23 +155,41 @@
                             <thead>
                                 <tr>
                                     <th>Sl. No.</th><th>Procedure Name</th><th>Medicine(s)</th>
-                                    <th>Site / Location</th><th>Duration</th><th>Precautions if any</th>
+                                    <th>Site / Frequency</th><th>Duration / Sessions</th><th>Instructions</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <t t-foreach="doc.outpatient_id.procedure_prescription_ids" t-as="proc">
-                                    <tr>
-                                        <td><t t-esc="proc_index + 1"/></td>
-                                        <td><t t-esc="proc.procedure_id.name"/></td>
-                                        <td>
-                                            <t t-foreach="proc.procedure_medicine_ids" t-as="pm">
-                                                <t t-esc="pm.medicine_id.name"/><br/>
-                                            </t>
-                                        </td>
-                                        <td><t t-esc="proc.site_location"/></td>
-                                        <td><t t-esc="proc.no_of_sessions"/> sessions</td>
-                                        <td><t t-esc="proc.precautions"/></td>
-                                    </tr>
+                                <t t-if="doc.assessment_type == 'inpatient'">
+                                    <t t-foreach="doc.treatment_plan_ids or doc.inpatient_id.treatment_plan_ids" t-as="tp">
+                                        <tr>
+                                            <td><t t-esc="tp_index + 1"/></td>
+                                            <td><t t-esc="tp.procedure_id.name"/></td>
+                                            <td>
+                                                <t t-foreach="tp.procedure_medicine_ids" t-as="pm">
+                                                    <t t-esc="pm.medicine_id.name"/><br/>
+                                                </t>
+                                            </td>
+                                            <td><t t-esc="tp.frequency"/></td>
+                                            <td><t t-esc="tp.no_of_sessions"/> sessions</td>
+                                            <td><t t-esc="tp.instructions"/></td>
+                                        </tr>
+                                    </t>
+                                </t>
+                                <t t-else="">
+                                    <t t-foreach="doc.procedure_prescription_ids or doc.outpatient_id.procedure_prescription_ids" t-as="proc">
+                                        <tr>
+                                            <td><t t-esc="proc_index + 1"/></td>
+                                            <td><t t-esc="proc.procedure_id.name"/></td>
+                                            <td>
+                                                <t t-foreach="proc.procedure_medicine_ids" t-as="pm">
+                                                    <t t-esc="pm.medicine_id.name"/><br/>
+                                                </t>
+                                            </td>
+                                            <td><t t-esc="proc.site_location"/></td>
+                                            <td><t t-esc="proc.no_of_sessions"/> sessions</td>
+                                            <td><t t-esc="proc.precautions"/></td>
+                                        </tr>
+                                    </t>
                                 </t>
                             </tbody>
                         </table>
@@ -165,8 +202,17 @@
                                     <t t-esc="doc.signoff_time"/></td>
                             </tr>
                             <tr>
-                                <td colspan="2"><strong>Name and signature of the consultant:</strong>
-                                    <t t-esc="doc.consultant_signoff_id.name or ''"/></td>
+                                <td colspan="2">
+                                    <strong>Name and signature of the consultant:</strong><br/>
+                                    <span style="font-size: 1.1em; font-weight: bold;" t-esc="doc.consultant_signoff_id.name or ''"/><br/>
+                                    <t t-if="doc.consultant_signature">
+                                        <img t-att-src="image_data_uri(doc.consultant_signature)"
+                                             style="max-height: 60px; max-width: 220px; margin-top: 5px;"/>
+                                    </t>
+                                    <t t-else="">
+                                        <div style="border-bottom: 1px dotted #333; width: 220px; height: 35px; margin-top: 5px;"/>
+                                    </t>
+                                </td>
                             </tr>
                         </table>
                     </div>

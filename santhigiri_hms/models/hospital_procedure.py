@@ -17,14 +17,19 @@ class HospitalProcedurePrescription(models.Model):
     _rec_name = 'reference'
 
     reference = fields.Char(string='Reference', readonly=True, default='New', copy=False)
+    assessment_id = fields.Many2one(
+        'hospital.op.assessment',
+        string='Initial Assessment',
+        ondelete='cascade',
+        index=True,
+    )
     outpatient_id = fields.Many2one('hospital.outpatient', string='OP Visit', ondelete='set null')
-    patient_id = fields.Many2one('res.partner', string='Patient', required=True,
+    patient_id = fields.Many2one('res.partner', string='Patient',
                                   domain=[('patient_seq', '!=', False)])
     patient_seq = fields.Char(related='patient_id.patient_seq', store=True, string='Patient No.')
     op_reference = fields.Char(related='outpatient_id.op_reference', store=True, string='OP Reference')
 
-    doctor_id = fields.Many2one('hr.employee', string='Prescribed By (Doctor)',
-                                 domain=[('doctor', '=', True)], required=True)
+    doctor_id = fields.Many2one('hr.employee', string='Prescribed By (Doctor)')
     procedure_id = fields.Many2one('product.template', string='Procedure / Therapy',
                                     domain=[('is_procedure', '=', True)], required=True)
     no_of_sessions = fields.Integer(string='Total Sessions', required=True, default=7)
@@ -49,10 +54,8 @@ class HospitalProcedurePrescription(models.Model):
         'prescription_id',
         'therapist_id',
         string='Assigned Therapist(s)',
-        domain=[('is_therapist', '=', True)],
     )
-    rmo_id = fields.Many2one('hr.employee', string='Assigned By (RMO)',
-                              domain=[('is_rmo', '=', True)])
+    rmo_id = fields.Many2one('hr.employee', string='Assigned By (RMO)')
 
     # Session tracking
     session_ids = fields.One2many('hospital.procedure.session', 'prescription_id', string='Sessions')
@@ -88,7 +91,37 @@ class HospitalProcedurePrescription(models.Model):
                 vals['reference'] = self.env['ir.sequence'].next_by_code(
                     'hospital.procedure.prescription'
                 ) or 'PROC/001'
+            if vals.get('assessment_id'):
+                ass = self.env['hospital.op.assessment'].browse(vals['assessment_id'])
+                if not vals.get('patient_id') and ass.patient_id:
+                    vals['patient_id'] = ass.patient_id.id
+                if not vals.get('outpatient_id') and ass.outpatient_id:
+                    vals['outpatient_id'] = ass.outpatient_id.id
+                if not vals.get('doctor_id') and ass.doctor_id:
+                    vals['doctor_id'] = ass.doctor_id.id
+            elif vals.get('outpatient_id') and not vals.get('assessment_id'):
+                ass = self.env['hospital.op.assessment'].search([
+                    ('outpatient_id', '=', vals['outpatient_id']),
+                ], limit=1)
+                if ass:
+                    vals['assessment_id'] = ass.id
+            if not vals.get('doctor_id'):
+                doc = self.env['hr.employee'].search([], limit=1)
+                if doc:
+                    vals['doctor_id'] = doc.id
+            proc_id = vals.get('procedure_id')
+            if proc_id:
+                proc = self.env['product.template'].sudo().browse(proc_id)
+                if not proc.is_procedure:
+                    proc.write({'is_procedure': True, 'type': 'service'})
         return super().create(vals_list)
+
+    def write(self, vals):
+        if 'procedure_id' in vals and vals['procedure_id']:
+            proc = self.env['product.template'].sudo().browse(vals['procedure_id'])
+            if not proc.is_procedure:
+                proc.write({'is_procedure': True, 'type': 'service'})
+        return super().write(vals)
 
     @api.depends('session_ids', 'session_ids.state', 'no_of_sessions')
     def _compute_sessions(self):
@@ -197,8 +230,7 @@ class HospitalProcedureSession(models.Model):
     session_no = fields.Integer(string='Session No.', compute='_compute_session_no', store=True)
     total_sessions = fields.Integer(related='prescription_id.no_of_sessions', store=True)
     progress_display = fields.Char(string='Progress', compute='_compute_session_no', store=True)
-    therapist_id = fields.Many2one('hr.employee', string='Therapist',
-                                    domain=[('is_therapist', '=', True)])
+    therapist_id = fields.Many2one('hr.employee', string='Therapist')
     start_time = fields.Float(string='Start Time')
     end_time = fields.Float(string='End Time')
     duration = fields.Float(string='Duration (hrs)', compute='_compute_duration', store=True)

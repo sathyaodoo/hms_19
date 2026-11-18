@@ -217,7 +217,8 @@ class HospitalOutpatient(models.Model):
             'type': 'ir.actions.act_window',
             'context': {
                 'default_patient_id': self.patient_id.id,
-                'default_doctor_id': self.doctor_id.id,
+                # 'default_doctor_id': self.doctor_id.id,
+                'default_doctor_id': self.doctor_id.doctor_id.id,
                 'default_patient_type': 'outpatient',
                 'default_op_id': self.id
             }

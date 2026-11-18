@@ -1,0 +1,478 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ══════════════════════════════════════════════════════════════════════════
+         NURSING PLAN — Views & Actions
+         ══════════════════════════════════════════════════════════════════════════ -->
+    <record id="view_nursing_plan_list" model="ir.ui.view">
+        <field name="name">nursing.plan.list</field>
+        <field name="model">nursing.plan</field>
+        <field name="arch" type="xml">
+            <list string="Nursing Plans &amp; Vitals Logs" default_order="date desc">
+                <field name="date" string="Visit Date &amp; Time"/>
+                <field name="admission_id" string="IP No."/>
+                <field name="patient_id" string="Patient"/>
+                <field name="uhid_no" string="UHID No." optional="show"/>
+                <field name="room_id" string="Room" optional="show"/>
+                <field name="bed_id" string="Bed" optional="show"/>
+                <field name="pulse" string="Pulse (bpm)" optional="show"/>
+                <field name="bp_sys" string="BP Sys" optional="show"/>
+                <field name="bp_dia" string="BP Dia" optional="show"/>
+                <field name="temp_f" string="Temp (°F)" optional="show"/>
+                <field name="spo2" string="SpO2 (%)" optional="show"/>
+                <field name="status" string="Patient Status"/>
+                <field name="nurse_id" string="Nurse" optional="show"/>
+                <field name="notes" string="Notes" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_nursing_plan_form" model="ir.ui.view">
+        <field name="name">nursing.plan.form</field>
+        <field name="model">nursing.plan</field>
+        <field name="arch" type="xml">
+            <form string="Nursing Observation &amp; Care Log">
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="admission_id" placeholder="Select Inpatient Admission..."/></h1>
+                    </div>
+                    <group>
+                        <group string="Patient &amp; Location Details">
+                            <field name="patient_id" readonly="1"/>
+                            <field name="uhid_no" readonly="1"/>
+                            <field name="room_id" readonly="1"/>
+                            <field name="bed_id" readonly="1"/>
+                            <field name="nurse_id"/>
+                        </group>
+                        <group string="Visit &amp; Vitals">
+                            <field name="date"/>
+                            <field name="pulse"/>
+                            <label for="bp_sys" string="Blood Pressure (Sys / Dia)"/>
+                            <div class="d-flex gap-1 align-items-center">
+                                <field name="bp_sys" placeholder="Sys" style="width: 70px;"/>
+                                <span>/</span>
+                                <field name="bp_dia" placeholder="Dia" style="width: 70px;"/>
+                                <span class="text-muted">mmHg</span>
+                            </div>
+                            <field name="temp_f"/>
+                            <field name="spo2"/>
+                            <field name="status"/>
+                        </group>
+                    </group>
+                    <group string="Nursing Observation &amp; Care Notes">
+                        <field name="notes" nolabel="1" placeholder="Enter clinical observation, medication administered, complaint, or nursing action taken..."/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_nursing_plan_search" model="ir.ui.view">
+        <field name="name">nursing.plan.search</field>
+        <field name="model">nursing.plan</field>
+        <field name="arch" type="xml">
+            <search string="Search Nursing Care Logs">
+                <field name="admission_id" string="IP No."/>
+                <field name="patient_id" string="Patient"/>
+                <field name="uhid_no" string="UHID No."/>
+                <field name="nurse_id" string="Nurse"/>
+                <field name="status" string="Status"/>
+                <group name="group_by">
+                    <filter string="Inpatient" name="group_admission" context="{'group_by': 'admission_id'}"/>
+                    <filter string="Patient" name="group_patient" context="{'group_by': 'patient_id'}"/>
+                    <filter string="Nurse" name="group_nurse" context="{'group_by': 'nurse_id'}"/>
+                    <filter string="Date" name="group_date" context="{'group_by': 'date'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════════════════════════
+         HOSPITAL MEDICATION PLAN — Views & Actions
+         ══════════════════════════════════════════════════════════════════════════ -->
+    <record id="view_hospital_medication_plan_list" model="ir.ui.view">
+        <field name="name">hospital.medication.plan.list</field>
+        <field name="model">hospital.medication.plan</field>
+        <field name="arch" type="xml">
+            <list string="Inpatient Medication Plans" default_order="start_date desc">
+                <field name="start_date"/>
+                <field name="inpatient_id" string="IP No."/>
+                <field name="patient_id" string="Patient"/>
+                <field name="uhid_no" string="UHID No." optional="show"/>
+                <field name="room_id" string="Room" optional="show"/>
+                <field name="medicine_id" string="Medicine"/>
+                <field name="dosage" string="Dosage"/>
+                <field name="frequency" string="Frequency"/>
+                <field name="duration_days" string="Days"/>
+                <field name="route" string="Route"/>
+                <field name="anupanam" string="Anupanam" optional="show"/>
+                <field name="instructions" string="Instructions" optional="hide"/>
+                <field name="total_charge" string="Charge" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_hospital_medication_plan_form" model="ir.ui.view">
+        <field name="name">hospital.medication.plan.form</field>
+        <field name="model">hospital.medication.plan</field>
+        <field name="arch" type="xml">
+            <form string="IP Medication Plan">
+                <sheet>
+                    <group>
+                        <group string="Admission &amp; Patient">
+                            <field name="inpatient_id"/>
+                            <field name="patient_id" readonly="1"/>
+                            <field name="uhid_no" readonly="1"/>
+                            <field name="room_id" readonly="1"/>
+                        </group>
+                        <group string="Medication Administration">
+                            <field name="medicine_id"/>
+                            <field name="dosage"/>
+                            <field name="frequency"/>
+                            <field name="route"/>
+                            <field name="anupanam"/>
+                            <field name="duration_days"/>
+                            <field name="start_date"/>
+                        </group>
+                    </group>
+                    <group string="Instructions &amp; Charges">
+                        <field name="instructions"/>
+                        <field name="total_charge"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════════════════════════
+         FOOD SUPPLY — Views & Actions
+         ══════════════════════════════════════════════════════════════════════════ -->
+    <record id="view_hospital_food_supply_list" model="ir.ui.view">
+        <field name="name">hospital.food.supply.list</field>
+        <field name="model">hospital.food.supply</field>
+        <field name="arch" type="xml">
+            <list string="Daily Food Supply Orders" default_order="supply_date desc, meal_type">
+                <field name="supply_date"/>
+                <field name="meal_type" string="Meal Type"/>
+                <field name="inpatient_id" string="IP No."/>
+                <field name="patient_id" string="Patient"/>
+                <field name="diet_plan_id" string="Diet Plan" optional="show"/>
+                <field name="bystander_meal" string="Bystander Meal" optional="show"/>
+                <field name="served_by" string="Served By" optional="show"/>
+                <field name="charge" string="Patient Charge" optional="hide"/>
+                <field name="notes" string="Diet Notes" optional="show"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_hospital_food_supply_form" model="ir.ui.view">
+        <field name="name">hospital.food.supply.form</field>
+        <field name="model">hospital.food.supply</field>
+        <field name="arch" type="xml">
+            <form string="Daily Food Supply Order">
+                <sheet>
+                    <group>
+                        <group string="Patient &amp; Admission">
+                            <field name="inpatient_id"/>
+                            <field name="patient_id" readonly="1"/>
+                            <field name="diet_plan_id"/>
+                        </group>
+                        <group string="Meal Details">
+                            <field name="supply_date"/>
+                            <field name="meal_type"/>
+                            <field name="bystander_meal"/>
+                            <field name="served_by"/>
+                        </group>
+                    </group>
+                    <group string="Items &amp; Dietary Notes">
+                        <field name="additional_items"/>
+                        <field name="notes"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════════════════════════
+         ACTIONS FOR NURSING STATION
+         ══════════════════════════════════════════════════════════════════════════ -->
+
+    <!-- 1. IP Admitted Patients (Bed Board) -->
+    <record id="action_nursing_ip_admitted_patients" model="ir.actions.act_window">
+        <field name="name">Admitted Patients (Bed Board)</field>
+        <field name="res_model">hospital.inpatient</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('state', 'in', ['reserve', 'admit'])]</field>
+        <field name="context">{'search_default_admit': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No admitted patients currently.</p>
+            <p>View all active inpatients currently admitted across wards and rooms.</p>
+        </field>
+    </record>
+
+    <!-- 2. IP Procedure Schedules -->
+    <record id="action_nursing_ip_procedure_schedules" model="ir.actions.act_window">
+        <field name="name">IP Procedure Schedules</field>
+        <field name="res_model">hospital.procedure.schedule</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('schedule_type', '=', 'inpatient')]</field>
+        <field name="context">{'default_schedule_type': 'inpatient'}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No Inpatient Procedure Schedules found.</p>
+            <p>Manage daily therapies, medicines, and timings scheduled for admitted inpatients.</p>
+        </field>
+    </record>
+
+    <!-- 3. OP Procedure Schedules -->
+    <record id="action_nursing_op_procedure_schedules" model="ir.actions.act_window">
+        <field name="name">OP Procedure Schedules</field>
+        <field name="res_model">hospital.procedure.schedule</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('schedule_type', '=', 'outpatient')]</field>
+        <field name="context">{'default_schedule_type': 'outpatient'}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No Outpatient Procedure Schedules found.</p>
+            <p>Manage daily therapies and panchakarma sessions scheduled for outpatients.</p>
+        </field>
+    </record>
+
+    <!-- 4. All Procedure Schedules -->
+    <record id="action_nursing_all_procedure_schedules" model="ir.actions.act_window">
+        <field name="name">All Procedure Schedules (Case Sheets)</field>
+        <field name="res_model">hospital.procedure.schedule</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[]</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">View all Procedure Schedules (both IP and OP).</p>
+        </field>
+    </record>
+
+    <!-- 5. IP Medication Plans -->
+    <record id="action_nursing_ip_medication_plans" model="ir.actions.act_window">
+        <field name="name">IP Medication Plans</field>
+        <field name="res_model">hospital.medication.plan</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'list', 'view_id': ref('view_hospital_medication_plan_list')}),
+            (0, 0, {'view_mode': 'form', 'view_id': ref('view_hospital_medication_plan_form')})]"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No IP Medication Plans found.</p>
+            <p>Track medication administration, dosage schedules, and frequencies for admitted patients.</p>
+        </field>
+    </record>
+
+    <!-- 6. IP Prescriptions -->
+    <record id="action_nursing_ip_prescriptions" model="ir.actions.act_window">
+        <field name="name">IP Prescriptions</field>
+        <field name="res_model">hospital.prescription</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('inpatient_id', '!=', False)]</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No Inpatient Prescriptions found.</p>
+        </field>
+    </record>
+
+    <!-- 7. OP Prescriptions -->
+    <record id="action_nursing_op_prescriptions" model="ir.actions.act_window">
+        <field name="name">OP Prescriptions</field>
+        <field name="res_model">hospital.prescription</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('outpatient_id', '!=', False)]</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No Outpatient Prescriptions found.</p>
+        </field>
+    </record>
+
+    <!-- 8. IP Diet Plans -->
+    <record id="action_nursing_ip_diet_plans" model="ir.actions.act_window">
+        <field name="name">IP Diet Plans</field>
+        <field name="res_model">hospital.diet.plan</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No Diet Plans found.</p>
+            <p>Manage Ayurvedic diet rules, Pathya / Apathya, and meal timings for inpatients.</p>
+        </field>
+    </record>
+
+    <!-- 9. IP Food Supply -->
+    <record id="action_nursing_ip_food_supplies" model="ir.actions.act_window">
+        <field name="name">IP Food Supply (Daily Orders)</field>
+        <field name="res_model">hospital.food.supply</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'list', 'view_id': ref('view_hospital_food_supply_list')}),
+            (0, 0, {'view_mode': 'form', 'view_id': ref('view_hospital_food_supply_form')})]"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No daily food supply records.</p>
+            <p>Log daily patient and bystander breakfast, lunch, and dinner deliveries.</p>
+        </field>
+    </record>
+
+    <!-- 10. IP Nursing Plans / Vitals -->
+    <record id="action_nursing_ip_nursing_plans" model="ir.actions.act_window">
+        <field name="name">IP Nursing Plans &amp; Vitals Logs</field>
+        <field name="res_model">nursing.plan</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'list', 'view_id': ref('view_nursing_plan_list')}),
+            (0, 0, {'view_mode': 'form', 'view_id': ref('view_nursing_plan_form')})]"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No nursing logs recorded yet.</p>
+            <p>Record routine patient checks, pulse, BP, temperature, SpO2, and care notes.</p>
+        </field>
+    </record>
+
+    <!-- 11. IP Medical Discharge -->
+    <record id="action_nursing_ip_medical_discharge" model="ir.actions.act_window">
+        <field name="name">IP Medical Discharge &amp; Summaries</field>
+        <field name="res_model">hospital.inpatient</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('state', 'in', ['invoice', 'dis'])]</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No discharged inpatients.</p>
+            <p>Access medical discharge summaries, discharge medications, and final billing status.</p>
+        </field>
+    </record>
+
+    <!-- 12. OP Daily Procedures -->
+    <record id="action_nursing_op_daily_procedures" model="ir.actions.act_window">
+        <field name="name">OP Daily Procedure Prescriptions</field>
+        <field name="res_model">hospital.procedure.prescription</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No OP procedure prescriptions.</p>
+        </field>
+    </record>
+
+    <!-- 13. OP Initial Assessments -->
+    <record id="action_nursing_op_assessments" model="ir.actions.act_window">
+        <field name="name">OP Initial Assessments</field>
+        <field name="res_model">hospital.op.assessment</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('assessment_type', '=', 'outpatient')]</field>
+        <field name="context">{'default_assessment_type': 'outpatient'}</field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════════════════════════
+         NURSING STATION MENUS
+         ══════════════════════════════════════════════════════════════════════════ -->
+    <!-- Top-Level Menu in Hospital Navbar -->
+    <menuitem id="menu_nursing_station_root"
+              name="Nursing Station"
+              parent="base_hospital_management.hospital_menu_root"
+              sequence="22"/>
+
+    <!-- ── 1. Inpatient (IP) Nursing ────────────────────────────────────────── -->
+    <menuitem id="menu_nursing_ip_root"
+              name="🏥 Inpatient (IP) Nursing"
+              parent="menu_nursing_station_root"
+              sequence="10"/>
+
+    <menuitem id="menu_nursing_ip_admitted_patients"
+              name="🛏️ Admitted Patients (Bed Board)"
+              parent="menu_nursing_ip_root"
+              action="action_nursing_ip_admitted_patients"
+              sequence="10"/>
+
+    <menuitem id="menu_nursing_ip_procedure_schedule"
+              name="📅 IP Procedure Schedules"
+              parent="menu_nursing_ip_root"
+              action="action_nursing_ip_procedure_schedules"
+              sequence="20"/>
+
+    <menuitem id="menu_nursing_ip_assessments"
+              name="📋 IP Initial Assessments"
+              parent="menu_nursing_ip_root"
+              action="action_ip_initial_assessment"
+              sequence="25"/>
+
+    <menuitem id="menu_nursing_ip_medication_plan"
+              name="💊 IP Medication Plans"
+              parent="menu_nursing_ip_root"
+              action="action_nursing_ip_medication_plans"
+              sequence="30"/>
+
+    <menuitem id="menu_nursing_ip_prescriptions"
+              name="📜 IP Prescriptions"
+              parent="menu_nursing_ip_root"
+              action="action_nursing_ip_prescriptions"
+              sequence="40"/>
+
+    <menuitem id="menu_nursing_ip_diet_plan"
+              name="🥗 IP Diet Plans"
+              parent="menu_nursing_ip_root"
+              action="action_nursing_ip_diet_plans"
+              sequence="50"/>
+
+    <menuitem id="menu_nursing_ip_food_supply"
+              name="🍲 IP Food Supply (Daily Orders)"
+              parent="menu_nursing_ip_root"
+              action="action_nursing_ip_food_supplies"
+              sequence="60"/>
+
+    <menuitem id="menu_nursing_ip_nursing_plan"
+              name="🩺 IP Nursing Plans / Vitals"
+              parent="menu_nursing_ip_root"
+              action="action_nursing_ip_nursing_plans"
+              sequence="70"/>
+
+    <menuitem id="menu_nursing_ip_discharge"
+              name="🚪 IP Medical Discharge &amp; Summaries"
+              parent="menu_nursing_ip_root"
+              action="action_nursing_ip_medical_discharge"
+              sequence="80"/>
+
+    <!-- ── 2. Outpatient (OP) Nursing & Daycare ─────────────────────────────── -->
+    <menuitem id="menu_nursing_op_root"
+              name="🏃 Outpatient (OP) Nursing"
+              parent="menu_nursing_station_root"
+              sequence="20"/>
+
+    <menuitem id="menu_nursing_op_procedure_schedule"
+              name="📅 OP Procedure Schedules"
+              parent="menu_nursing_op_root"
+              action="action_nursing_op_procedure_schedules"
+              sequence="10"/>
+
+    <menuitem id="menu_nursing_op_prescriptions"
+              name="📜 OP Prescriptions"
+              parent="menu_nursing_op_root"
+              action="action_nursing_op_prescriptions"
+              sequence="20"/>
+
+    <menuitem id="menu_nursing_op_daily_procedures"
+              name="🧴 OP Daily Procedures"
+              parent="menu_nursing_op_root"
+              action="action_nursing_op_daily_procedures"
+              sequence="30"/>
+
+    <menuitem id="menu_nursing_op_assessments"
+              name="📋 OP Initial Assessments"
+              parent="menu_nursing_op_root"
+              action="action_op_initial_assessment"
+              sequence="40"/>
+
+    <!-- ── 3. All Records (Master View) ─────────────────────────────────────── -->
+    <menuitem id="menu_nursing_all_root"
+              name="📋 All Records (Master View)"
+              parent="menu_nursing_station_root"
+              sequence="30"/>
+
+    <menuitem id="menu_nursing_all_procedure_schedule"
+              name="All Procedure Schedules (Case Sheets)"
+              parent="menu_nursing_all_root"
+              action="action_nursing_all_procedure_schedules"
+              sequence="10"/>
+
+    <menuitem id="menu_nursing_all_prescriptions"
+              name="All Prescriptions Master"
+              parent="menu_nursing_all_root"
+              action="action_hospital_prescription"
+              sequence="20"/>
+
+    <menuitem id="menu_nursing_all_assessments"
+              name="All Initial Assessment Sheets"
+              parent="menu_nursing_all_root"
+              action="action_op_assessment"
+              sequence="30"/>
+
+</odoo>

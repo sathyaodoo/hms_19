@@ -1,36 +1,50 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
+    <!-- Initial Assessment Form View (Supports both OP & IP) -->
     <record id="view_op_assessment_form" model="ir.ui.view">
         <field name="name">hospital.op.assessment.form</field>
         <field name="model">hospital.op.assessment</field>
         <field name="arch" type="xml">
-            <form string="Initial Assessment Sheet - OP">
+            <form string="Initial Assessment Sheet (OP / IP)">
                 <header>
-                    <button name="action_confirm" type="object" string="Confirm"
+                    <button name="action_confirm" type="object" string="Confirm / Sign Off"
                             class="btn-primary" invisible="state != 'draft'"/>
-                    <button name="action_print" type="object" string="Print"
+                    <button name="action_open_inpatient" type="object" string="Case Sheet View"
+                            class="btn-secondary" icon="fa-bed"
+                            invisible="assessment_type != 'inpatient' or not inpatient_id"/>
+                    <button name="action_print" type="object" string="Print Form (SAMC/CS/11)"
                             class="btn-secondary" icon="fa-print"/>
                     <field name="state" widget="statusbar"/>
                 </header>
                 <sheet>
                     <div class="oe_title">
                         <h1><field name="reference" readonly="1"/></h1>
-                        <span class="text-muted">Form No: SAMC/CS/11</span>
+                        <span class="text-muted" invisible="assessment_type != 'outpatient'">Form No: SAMC/CS/11 — Initial Assessment Sheet - OP</span>
+                        <span class="text-muted" invisible="assessment_type != 'inpatient'">Form No: SAMC/CS/IP/11 — Initial Assessment Sheet - IP</span>
                     </div>
+
                     <group>
-                        <group string="Patient / Visit">
-                            <field name="outpatient_id" readonly="1"/>
-                            <field name="patient_id" readonly="1"/>
+                        <group string="Assessment &amp; Patient Details">
+                            <field name="assessment_type" widget="radio" options="{'horizontal': true}"/>
+                            <field name="outpatient_id" invisible="assessment_type != 'outpatient'" options="{'no_create': True}"/>
+                            <field name="inpatient_id" invisible="assessment_type != 'inpatient'" options="{'no_create': True}"/>
+                            <field name="patient_id" required="1" options="{'no_create': True}"/>
                             <field name="patient_seq" readonly="1"/>
-                            <field name="doctor_id" readonly="1" string="Consultant"/>
-                            <field name="department_id"/>
+                            <field name="uhid_no" readonly="1"/>
+                            <field name="cop_no" invisible="assessment_type != 'outpatient'" readonly="1"/>
+                            <field name="dop_no" invisible="assessment_type != 'outpatient'" readonly="1"/>
+                            <field name="ip_no" invisible="assessment_type != 'inpatient'" readonly="1"/>
                         </group>
-                        <group string="Identifiers">
+                        <group string="Department, Consultant &amp; Schedule">
+                            <field name="department_id"/>
+                            <field name="doctor_id" string="Consultant"/>
+                            <field name="ward_id" invisible="assessment_type != 'inpatient'"/>
+                            <field name="room_id" invisible="assessment_type != 'inpatient'"/>
+                            <field name="bed_id" invisible="assessment_type != 'inpatient'"/>
+                            <field name="registration_datetime" invisible="assessment_type != 'outpatient'" readonly="1"/>
+                            <field name="admission_datetime" invisible="assessment_type != 'inpatient'" readonly="1"/>
                             <field name="assessment_datetime"/>
-                            <field name="uhid_no"/>
-                            <field name="cop_no"/>
-                            <field name="dop_no"/>
                         </group>
                     </group>
 
@@ -75,43 +89,77 @@
                                 <field name="care_plan_outcome"/>
                             </group>
                         </page>
+
                         <page string="Medication Order" name="medication_order">
-                            <field name="prescription_ids" readonly="1">
-                                <list>
-                                    <field name="medicine_id"/>
+                            <field name="prescription_ids"
+                                   context="{'default_assessment_id': id, 'default_outpatient_id': outpatient_id, 'default_inpatient_id': inpatient_id, 'default_res_partner_id': patient_id}">
+                                <list editable="bottom">
+                                    <field name="medicine_id" context="{'default_medicine_ok': True, 'default_type': 'consu'}" options="{'no_create': False}"/>
                                     <field name="route"/>
                                     <field name="no_intakes" string="Dose"/>
                                     <field name="time"/>
+                                    <field name="note" string="Food Relation" optional="show"/>
                                     <field name="anupanam" string="Anupana"/>
                                     <field name="duration_days" string="Duration (Days)"/>
+                                    <field name="quantity" optional="hide"/>
+                                    <field name="pathya_apathya" string="Pathya / Apathya" optional="show"/>
                                 </list>
                             </field>
-                            <p class="text-muted mt-2">
-                                To add or edit medicines, use the Prescription tab
-                                on the linked OP form.
-                            </p>
                         </page>
-                        <page string="Treatment Order" name="treatment_order">
-                            <field name="procedure_prescription_ids" readonly="1">
-                                <list>
-                                    <field name="procedure_id" string="Procedure Name"/>
+
+                        <page string="Treatment Order (OP)" name="treatment_order_op" invisible="assessment_type != 'outpatient'">
+                            <field name="procedure_prescription_ids"
+                                   context="{'default_assessment_id': id, 'default_outpatient_id': outpatient_id, 'default_patient_id': patient_id, 'default_doctor_id': doctor_id}">
+                                <list editable="bottom">
+                                    <field name="procedure_id" context="{'default_is_procedure': True, 'default_type': 'service'}" options="{'no_create': False}" string="Procedure Name"/>
                                     <field name="site_location" string="Site / Location"/>
                                     <field name="no_of_sessions" string="Duration (Sessions)"/>
+                                    <field name="start_date" optional="show"/>
                                     <field name="precautions" string="Precautions if any"/>
+                                    <field name="instructions" string="Instructions" optional="show"/>
                                     <field name="state" widget="badge"/>
                                 </list>
                             </field>
-                            <p class="text-muted mt-2">
-                                To add or edit procedures, use "OP + Daily Procedures"
-                                on the OP form.
-                            </p>
+                        </page>
+
+                        <page string="Treatment Plan (IP)" name="treatment_order_ip" invisible="assessment_type != 'inpatient'">
+                            <field name="treatment_plan_ids"
+                                   context="{'default_assessment_id': id, 'default_inpatient_id': inpatient_id}">
+                                <list editable="bottom" create="1" delete="1"
+                                      decoration-info="status == 'updated'"
+                                      decoration-success="status == 'done'"
+                                      decoration-warning="status == 'in_progress'"
+                                      decoration-muted="status == 'cancelled'">
+                                    <field name="date" string="Date"/>
+                                    <field name="start_time" string="Start Time"/>
+                                    <field name="end_time" string="End Time"/>
+                                    <field name="procedure_id" context="{'default_is_procedure': True, 'default_type': 'service'}" options="{'no_create': False}" string="Procedure"/>
+                                    <field name="medicine_display" string="Medicine" readonly="1"/>
+                                    <field name="duration" string="Duration"/>
+                                    <field name="location_site" string="Location / Site"/>
+                                    <field name="notes" string="Notes"/>
+                                    <field name="treatment_room_id" string="Treatment Room" options="{'no_create': True}"/>
+                                    <field name="staff_display" string="Staff" readonly="1"/>
+                                    <field name="status" string="Status" widget="badge"
+                                           decoration-info="status == 'updated'"
+                                           decoration-success="status == 'done'"
+                                           decoration-warning="status == 'in_progress'"
+                                           decoration-muted="status == 'scheduled'"/>
+                                </list>
+                            </field>
                         </page>
                     </notebook>
 
-                    <group string="Sign-off" invisible="state != 'confirmed'">
-                        <field name="consultant_signoff_id"/>
-                        <field name="signoff_date"/>
-                        <field name="signoff_time"/>
+                    <!-- Consultant Name and Signature of the Consultant -->
+                    <group string="Name and Signature of the Consultant">
+                        <group>
+                            <field name="consultant_signoff_id"/>
+                            <field name="signoff_date"/>
+                            <field name="signoff_time"/>
+                        </group>
+                        <group>
+                            <field name="consultant_signature" widget="signature"/>
+                        </group>
                     </group>
                 </sheet>
                 <chatter/>
@@ -119,29 +167,94 @@
         </field>
     </record>
 
+    <!-- Initial Assessment List View -->
     <record id="view_op_assessment_list" model="ir.ui.view">
         <field name="name">hospital.op.assessment.list</field>
         <field name="model">hospital.op.assessment</field>
         <field name="arch" type="xml">
             <list string="Initial Assessment Sheets">
                 <field name="reference"/>
+                <field name="assessment_type" widget="badge"/>
                 <field name="patient_id"/>
+                <field name="uhid_no"/>
+                <field name="cop_no"/>
+                <field name="dop_no"/>
+                <field name="ip_no"/>
+                <field name="department_id"/>
                 <field name="assessment_datetime"/>
-                <field name="doctor_id"/>
-                <field name="nutritional_screening"/>
-                <field name="pain_score"/>
-                <field name="state" widget="badge"/>
+                <field name="consultant_signoff_id" string="Consultant"/>
+                <field name="state" widget="badge"
+                       decoration-warning="state == 'draft'"
+                       decoration-success="state == 'confirmed'"/>
             </list>
         </field>
     </record>
 
-    <record id="action_op_assessment" model="ir.actions.act_window">
-        <field name="name">Initial Assessment Sheets (OP)</field>
-        <field name="res_model">hospital.op.assessment</field>
-        <field name="view_mode">list,form</field>
+    <!-- Initial Assessment Search View -->
+    <record id="view_op_assessment_search" model="ir.ui.view">
+        <field name="name">hospital.op.assessment.search</field>
+        <field name="model">hospital.op.assessment</field>
+        <field name="arch" type="xml">
+            <search string="Search Initial Assessments">
+                <field name="reference"/>
+                <field name="patient_id"/>
+                <field name="uhid_no"/>
+                <field name="cop_no"/>
+                <field name="dop_no"/>
+                <field name="ip_no"/>
+                <field name="department_id"/>
+                <field name="consultant_signoff_id"/>
+                <separator/>
+                <filter string="Outpatient (OP)" name="type_op" domain="[('assessment_type', '=', 'outpatient')]"/>
+                <filter string="Inpatient (IP)" name="type_ip" domain="[('assessment_type', '=', 'inpatient')]"/>
+                <separator/>
+                <filter string="My Department Assessments" name="my_dept"
+                        domain="[('department_id.member_ids.user_id', '=', uid)]"/>
+                <filter string="Today's Assessments" name="today"
+                        domain="[('assessment_datetime', '&gt;=', context_today().strftime('%Y-%m-%d 00:00:00'))]"/>
+                <separator/>
+                <filter string="Draft" name="draft" domain="[('state', '=', 'draft')]"/>
+                <filter string="Confirmed" name="confirmed" domain="[('state', '=', 'confirmed')]"/>
+                <group name="group_by">
+                    <filter string="Assessment Type" name="group_type" context="{'group_by': 'assessment_type'}"/>
+                    <filter string="Department" name="group_dept" context="{'group_by': 'department_id'}"/>
+                    <filter string="Consultant" name="group_consultant" context="{'group_by': 'consultant_signoff_id'}"/>
+                    <filter string="State" name="group_state" context="{'group_by': 'state'}"/>
+                    <filter string="Assessment Date" name="group_date" context="{'group_by': 'assessment_datetime:day'}"/>
+                </group>
+            </search>
+        </field>
     </record>
 
-    <!-- Smart button + link on the OP form -->
+    <!-- Action for All Initial Assessments -->
+    <record id="action_op_assessment" model="ir.actions.act_window">
+        <field name="name">Initial Assessment Sheets</field>
+        <field name="res_model">hospital.op.assessment</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_op_assessment_search"/>
+    </record>
+
+    <!-- Action for OP Initial Assessments -->
+    <record id="action_op_initial_assessment" model="ir.actions.act_window">
+        <field name="name">OP Initial Assessments</field>
+        <field name="res_model">hospital.op.assessment</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('assessment_type', '=', 'outpatient')]</field>
+        <field name="context">{'default_assessment_type': 'outpatient'}</field>
+        <field name="search_view_id" ref="view_op_assessment_search"/>
+    </record>
+
+    <!-- Action for IP Initial Assessments -->
+    <record id="action_ip_initial_assessment" model="ir.actions.act_window">
+        <field name="name">IP Initial Assessments</field>
+        <field name="res_model">hospital.op.assessment</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('assessment_type', '=', 'inpatient')]</field>
+        <field name="context">{'default_assessment_type': 'inpatient'}</field>
+        <field name="search_view_id" ref="view_op_assessment_search"/>
+    </record>
+
+    <!-- Smart button on OP form -->
     <record id="view_outpatient_form_assessment_button" model="ir.ui.view">
         <field name="name">hospital.outpatient.form.assessment.button</field>
         <field name="model">hospital.outpatient</field>
@@ -156,5 +269,29 @@
             </xpath>
         </field>
     </record>
+
+    <!-- Menu Items: Initial Assessments under Appointments menu -->
+    <menuitem id="menu_initial_assessment_root"
+              name="Initial Assessments"
+              parent="base_hospital_management.hospital_menu_appointment"
+              sequence="4"/>
+
+    <menuitem id="menu_op_initial_assessment"
+              name="OP Initial Assessments"
+              parent="menu_initial_assessment_root"
+              action="action_op_initial_assessment"
+              sequence="1"/>
+
+    <menuitem id="menu_ip_initial_assessment"
+              name="IP Initial Assessments"
+              parent="menu_initial_assessment_root"
+              action="action_ip_initial_assessment"
+              sequence="2"/>
+
+    <menuitem id="menu_all_initial_assessment"
+              name="All Initial Assessments"
+              parent="menu_initial_assessment_root"
+              action="action_op_assessment"
+              sequence="3"/>
 
 </odoo>

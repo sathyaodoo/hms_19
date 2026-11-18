@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from odoo import api, fields, models
+from odoo.exceptions import UserError
 
 
 class HospitalFollowup(models.Model):
@@ -34,6 +35,13 @@ class HospitalFollowup(models.Model):
     def _onchange_source_op(self):
         if self.source_op_id and self.source_op_id.patient_id:
             self.patient_id = self.source_op_id.patient_id
+            
+    def action_mark_rescheduled(self):
+        """Button action for marking a follow-up as rescheduled"""
+        for rec in self:
+            if not rec.rescheduled_to:
+                raise UserError('Please set the Rescheduled To date before marking as rescheduled.')
+            rec.status = 'rescheduled'
 
     @api.model_create_multi
     def create(self, vals_list):

@@ -19,6 +19,7 @@
         'security/ir.model.access.csv',
         # Sequences & cron
         'data/ir_sequence_data.xml',
+        'data/hr_department_data.xml',
         'data/website_data.xml',
         'data/ir_cron_data.xml',
         # Views
@@ -28,10 +29,14 @@
         'views/hr_employee_views.xml',
         'views/res_partner_views.xml',
         'views/fee_master_views.xml',
+        'views/hospital_appointment_views.xml',
+        'views/hospital_screening_views.xml',
+        'views/hospital_prescription_views.xml',
         'views/hospital_outpatient_views.xml',
         'views/hospital_inpatient_views.xml',
         'views/hospital_casualty_views.xml',
         'views/hospital_procedure_views.xml',
+        'views/hospital_procedure_schedule_views.xml',
         'views/hospital_treatment_plan_views.xml',
         'views/hospital_diet_views.xml',
         'views/hospital_camp_views.xml',
@@ -45,6 +50,7 @@
         'views/op_assessment_views.xml',
         'views/reassessment_views.xml',
         'views/lab_test_category_views.xml',
+        'views/nursing_station_views.xml',
 
         # Reports
         'reports/patient_card_override.xml',

@@ -1,5 +1,45 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <!-- OP Tree / List View Extension -->
+    <record id="view_outpatient_list_santhigiri" model="ir.ui.view">
+        <field name="name">hospital.outpatient.list.santhigiri</field>
+        <field name="model">hospital.outpatient</field>
+        <field name="inherit_id" ref="base_hospital_management.hospital_outpatient_view_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='op_reference']" position="before">
+                <field name="cop_no"/>
+                <field name="dop_no"/>
+                <field name="uhid_no"/>
+            </xpath>
+            <xpath expr="//field[@name='patient_id']" position="after">
+                <field name="visit_type" widget="badge"
+                       decoration-info="visit_type == 'new'"
+                       decoration-warning="visit_type == 'followup'"/>
+            </xpath>
+            <xpath expr="//field[@name='doctor_id']" position="before">
+                <field name="department_id"/>
+            </xpath>
+            <xpath expr="//field[@name='reason']" position="after">
+                <field name="patient_category" widget="badge"/>
+                <field name="claim" widget="badge"
+                       decoration-success="claim == 'yes'"
+                       decoration-muted="claim == 'no'"/>
+                <field name="accounts_payment_status" widget="badge"
+                       decoration-success="accounts_payment_status == 'received'"
+                       decoration-warning="accounts_payment_status == 'pending'"
+                       decoration-info="accounts_payment_status == 'waived'"/>
+            </xpath>
+            <xpath expr="//field[@name='state']" position="after">
+                <button name="action_open_assessment" type="object"
+                        string="Initial Assessment" icon="fa-stethoscope"
+                        class="btn btn-sm btn-outline-primary"/>
+                <button name="action_open_procedure_schedule" type="object"
+                        string="Procedure Schedule" icon="fa-calendar-check-o"
+                        class="btn btn-sm btn-outline-success"/>
+            </xpath>
+        </field>
+    </record>
+
     <!-- OP form extension -->
     <record id="view_outpatient_form_santhigiri" model="ir.ui.view">
         <field name="name">hospital.outpatient.form.santhigiri</field>
@@ -7,18 +47,64 @@
         <field name="inherit_id" ref="base_hospital_management.hospital_outpatient_view_form"/>
         <field name="arch" type="xml">
 
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_open_assessment" type="object"
+                        class="oe_stat_button" icon="fa-stethoscope">
+                    <field name="assessment_count" widget="statinfo" string="Assessment"/>
+                </button>
+                <button name="action_open_procedure_schedule" type="object"
+                        class="oe_stat_button" icon="fa-calendar-check-o">
+                    <field name="procedure_schedule_count" widget="statinfo" string="Procedure Schedule"/>
+                </button>
+                <button name="action_open_inpatient" type="object"
+                        class="oe_stat_button" icon="fa-hospital-o"
+                        invisible="not inpatient_id">
+                    <field name="inpatient_count" widget="statinfo" string="Inpatient (IP)"/>
+                </button>
+                <button name="action_open_screening" type="object"
+                        class="oe_stat_button" icon="fa-heartbeat"
+                        invisible="not screening_id">
+                    <field name="screening_count" widget="statinfo" string="Screening"/>
+                </button>
+            </xpath>
+
+            <xpath expr="//field[@name='patient_id']" position="after">
+                <field name="uhid_no" placeholder="UHID No. (Auto or entered)"/>
+                <field name="patient_phone" widget="phone"/>
+                <field name="patient_age"/>
+                <field name="registration_datetime" readonly="state in ('invoice','cancel')"/>
+                <field name="visit_type" widget="radio" options="{'horizontal': true}"/>
+            </xpath>
+
+            <xpath expr="//field[@name='doctor_id']" position="before">
+                <field name="department_id" options="{'no_create': True, 'no_edit': True}"
+                       readonly="state in ('invoice','cancel')"/>
+                <field name="cop_no"/>
+                <field name="dop_no"/>
+            </xpath>
+
             <xpath expr="//field[@name='reason']" position="after">
                 <field name="patient_category" widget="selection"/>
                 <field name="category_fee" widget="monetary" readonly="1"
                        string="Consultation Fee (Auto)"/>
+                <field name="registration_fee" widget="monetary"
+                       string="Registration Fee Amount"/>
                 <field name="camp_id" string="Medical Camp (if applicable)"
                        domain="[('state','=','active')]"
                        options="{'no_create': true}"/>
-                <!-- §9.5 Referral -->
+                <field name="claim" widget="radio"/>
                 <field name="is_referred" string="Referred Patient"/>
             </xpath>
 
             <xpath expr="//button[@name='action_confirm']" position="after">
+                <button name="action_submit_op_record" type="object"
+                        string="SUBMIT OP RECORD" class="btn btn-primary fw-bold"
+                        invisible="state not in ['draft', 'op']"
+                        icon="fa-check-circle"/>
+                <button name="action_receive_registration_fee" type="object"
+                        string="Receive Accounts Payment" class="btn btn-success"
+                        invisible="accounts_payment_status == 'received'"
+                        icon="fa-money"/>
                 <button name="action_outcome_regular" type="object"
                         string="Regular OP Done" class="btn btn-success"
                         invisible="state not in ['op']"
@@ -29,50 +115,251 @@
                         icon="fa-clock-o"/>
                 <button name="action_outcome_inpatient" type="object"
                         string="Admit to IP" class="btn btn-danger"
-                        invisible="state not in ['op']"
+                        invisible="state in ['inpatient', 'cancel']"
                         icon="fa-hospital-o"/>
             </xpath>
 
-            <!-- ★ NEW: Route / Anupana / Duration columns in the Prescription tab list ★ -->
+            <xpath expr="//notebook" position="attributes">
+                <attribute name="invisible">state == 'cancel'</attribute>
+            </xpath>
+
+            <!-- Rename base Prescription tab to Case Sheet (OP Record) -->
+            <xpath expr="//page[@name='Prescription']" position="attributes">
+                <attribute name="string">Case Sheet (OP Record)</attribute>
+            </xpath>
+
+            <!-- 1 to 6: Complaints, History, Examination, Investigations, Diagnosis, Advices placed BEFORE Prescription -->
+            <xpath expr="//field[@name='prescription_ids']" position="before">
+                <!-- 1. Presenting Complaints -->
+                <div class="d-flex align-items-center mb-2 pt-3" style="min-height: 40px; overflow: visible;">
+                    <h5 class="fw-bold text-primary m-0" style="line-height: 1.6; overflow: visible; padding-top: 6px; padding-bottom: 6px;">
+                        <i class="fa fa-stethoscope me-2"/>PRESENTING COMPLAINTS
+                    </h5>
+                </div>
+                <field name="complaint_ids" class="mb-4">
+                    <list editable="bottom">
+                        <field name="sequence" string="Sr.No." widget="handle"/>
+                        <field name="name" string="Complaint" placeholder="e.g. C/O burning micturition, Lower back pain..."/>
+                        <field name="notes" string="Notes / Duration" placeholder="e.g. Since 3 days, intermittent..."/>
+                    </list>
+                </field>
+
+                <!-- 2. Medical History -->
+                <div class="d-flex align-items-center mb-2 mt-4">
+                    <h5 class="fw-bold text-primary m-0" style="line-height: 1.6; overflow: visible;">
+                        <i class="fa fa-history me-2"/>MEDICAL HISTORY
+                    </h5>
+                </div>
+                <field name="history_ids" class="mb-4">
+                    <list editable="bottom">
+                        <field name="name" string="Medical History" placeholder="e.g. Under ayurvedic medication, DM, HTN, asthma..."/>
+                        <field name="notes" string="Notes" placeholder="e.g. Since 2 years, well-controlled..."/>
+                    </list>
+                </field>
+
+                <!-- 3. Clinical Examination -->
+                <div class="d-flex align-items-center mb-2 mt-4">
+                    <h5 class="fw-bold text-primary m-0" style="line-height: 1.6; overflow: visible;">
+                        <i class="fa fa-user-md me-2"/>CLINICAL EXAMINATION
+                    </h5>
+                </div>
+                <field name="examination_ids" class="mb-4">
+                    <list editable="bottom">
+                        <field name="name" string="Examination" placeholder="e.g. General examination, Nadi, Tongue, BP, Pulse..."/>
+                        <field name="notes" string="Findings / Notes" placeholder="e.g. Done, NAD, Clear, Stable..."/>
+                    </list>
+                </field>
+
+                <!-- 4. Investigations (Lab Tests) -->
+                <div class="d-flex justify-content-between align-items-center mb-2 mt-4">
+                    <h5 class="fw-bold text-primary m-0" style="line-height: 1.6; overflow: visible;">
+                        <i class="fa fa-flask me-2"/>INVESTIGATIONS (LAB TESTS)
+                    </h5>
+                    <button name="action_create_lab_test" type="object"
+                            string="Order Lab Test" class="btn btn-outline-primary btn-sm"
+                            icon="fa-plus"/>
+                </div>
+                <field name="test_ids" class="mb-4">
+                    <list editable="bottom">
+                        <field name="name" string="Test Ref / Seq" readonly="1"/>
+                        <field name="date" string="Date"/>
+                        <field name="test_ids" widget="many2many_tags" string="Investigation / Tests"/>
+                        <field name="priority" widget="badge"
+                               decoration-danger="priority == 'stat'"
+                               decoration-warning="priority == 'urgent'"
+                               decoration-info="priority == 'routine'"/>
+                        <field name="clinical_notes" string="Notes"/>
+                        <field name="impressions" string="Impressions"/>
+                        <field name="state" widget="badge"
+                               decoration-success="state == 'created'"
+                               decoration-muted="state == 'draft'"/>
+                    </list>
+                </field>
+
+                <!-- 5. Diagnosis -->
+                <div class="d-flex align-items-center mb-2 mt-4">
+                    <h5 class="fw-bold text-primary m-0" style="line-height: 1.6; overflow: visible;">
+                        <i class="fa fa-heartbeat me-2"/>DIAGNOSIS
+                    </h5>
+                </div>
+                <field name="diagnosis_ids" class="mb-4">
+                    <list editable="bottom">
+                        <field name="name" string="Diagnosis" placeholder="e.g. muthrakrichra, Sandhigata Vata, Amavata..."/>
+                        <field name="notes" string="Notes" placeholder="e.g. Provisional / Confirmed, Dosha stage..."/>
+                    </list>
+                </field>
+
+                <!-- 6. Advices -->
+                <div class="d-flex align-items-center mb-2 mt-4">
+                    <h5 class="fw-bold text-primary m-0" style="line-height: 1.6; overflow: visible;">
+                        <i class="fa fa-comment-o me-2"/>ADVICES
+                    </h5>
+                </div>
+                <field name="advice_ids" class="mb-4">
+                    <list editable="bottom">
+                        <field name="name" string="Advice" placeholder="e.g. Medication for 7 days, Drink warm water, Pathya-Apathya..."/>
+                        <field name="notes" string="Notes" placeholder="e.g. Rest for 3 days, review if needed..."/>
+                    </list>
+                </field>
+
+                <!-- 7. Prescription Section Header -->
+                <div class="d-flex align-items-center mb-2 mt-4">
+                    <h5 class="fw-bold text-primary m-0" style="line-height: 1.6; overflow: visible;">
+                        <i class="fa fa-medkit me-2"/>PRESCRIPTION
+                    </h5>
+                </div>
+            </xpath>
+
+            <!-- 7. Route / Dosage / Timing / Duration columns in the Prescription list -->
+            <xpath expr="//field[@name='prescription_ids']/list/field[@name='medicine_id']"
+                   position="attributes">
+                <attribute name="context">{'default_medicine_ok': True, 'default_type': 'consu'}</attribute>
+                <attribute name="options">{'no_create': False, 'no_quick_create': False}</attribute>
+            </xpath>
             <xpath expr="//field[@name='prescription_ids']/list/field[@name='medicine_id']"
                    position="after">
-                <field name="route"/>
+                <field name="dosage"/>
+                <field name="unit"/>
+                <field name="timing"/>
             </xpath>
-            <xpath expr="//field[@name='prescription_ids']/list/field[@name='quantity']"
+            <xpath expr="//field[@name='prescription_ids']/list/field[@name='no_intakes']"
+                   position="attributes">
+                <attribute name="optional">hide</attribute>
+            </xpath>
+            <xpath expr="//field[@name='prescription_ids']/list/field[@name='time']"
+                   position="attributes">
+                <attribute name="optional">hide</attribute>
+            </xpath>
+            <xpath expr="//field[@name='prescription_ids']/list/field[@name='note']"
+                   position="attributes">
+                <attribute name="string">Before Food / After Food</attribute>
+            </xpath>
+            <xpath expr="//field[@name='prescription_ids']/list/field[@name='note']"
                    position="after">
+                <field name="duration_days" string="No. of Days"/>
                 <field name="anupanam"/>
-                <field name="duration_days"/>
+                <field name="route"/>
+                <field name="remarks" string="Notes / Remarks"/>
+            </xpath>
+
+            <!-- 8 & 9 & 10: Procedures, Follow-up and SUBMIT OP RECORD placed AFTER Prescription -->
+            <xpath expr="//field[@name='prescription_ids']" position="after">
+                <!-- 8. Procedures -->
+                <div class="d-flex justify-content-between align-items-center mb-2 mt-4">
+                    <h5 class="fw-bold text-primary m-0" style="line-height: 1.6; overflow: visible;">
+                        <i class="fa fa-bed me-2"/>PROCEDURES &amp; THERAPIES
+                    </h5>
+                    <button name="action_open_procedure_schedule" type="object"
+                            string="Open Procedure Schedule" class="btn btn-outline-primary btn-sm"
+                            icon="fa-calendar-check-o"/>
+                </div>
+                <field name="procedure_prescription_ids" class="mb-4">
+                    <list editable="bottom">
+                        <field name="reference" string="Ref" readonly="1"/>
+                        <field name="procedure_id" string="Procedure / Therapy"
+                               context="{'default_is_procedure': True, 'default_type': 'service'}"
+                               options="{'no_create': True}"/>
+                        <field name="no_of_sessions" string="Sessions"/>
+                        <field name="start_date" string="Start Date"/>
+                        <field name="site_location" string="Location / Site"/>
+                        <field name="therapist_ids" widget="many2many_tags" string="Therapist(s)"/>
+                        <field name="instructions" string="Notes / Instructions"/>
+                        <field name="state" widget="badge"
+                               decoration-success="state == 'done'"
+                               decoration-info="state == 'in_progress'"
+                               decoration-warning="state == 'confirmed'"
+                               decoration-muted="state == 'draft'"/>
+                    </list>
+                </field>
+
+                <!-- 9. Follow-Up -->
+                <group string="Follow-Up &amp; Review" class="mt-3">
+                    <group>
+                        <field name="followup_date"/>
+                    </group>
+                    <group>
+                        <field name="followup_notes" placeholder="Follow-up instructions or review timeline..."/>
+                    </group>
+                </group>
+
+                <!-- 10. SUBMIT OP RECORD -->
+                <div class="text-center mt-4 mb-3 p-3 bg-light rounded border">
+                    <button name="action_submit_op_record" type="object"
+                            string="SUBMIT OP RECORD" class="btn btn-primary btn-lg fw-bold px-5"
+                            invisible="state not in ['draft', 'op']"
+                            icon="fa-check-circle"/>
+                </div>
             </xpath>
 
             <xpath expr="//page[@name='Prescription']" position="after">
-                <page string="Case Sheet" name="case_sheet">
+                <!-- Registration Tab: Dedicated tab configuring all registration items & accounts payment -->
+                <page string="Registration" name="registration_tab">
                     <group>
-                        <group string="Clinical Notes">
-                            <field name="chief_complaint" nolabel="1"
-                                   placeholder="Chief Complaint"
-                                   widget="text" colspan="2"/>
+                        <group string="Registration &amp; Numbers">
+                            <field name="registration_datetime"/>
+                            <field name="visit_type" widget="radio" options="{'horizontal': true}"/>
+                            <field name="uhid_no" readonly="1"/>
+                            <field name="cop_no" readonly="1"/>
+                            <field name="dop_no" readonly="1"/>
+                            <field name="department_id" readonly="state in ('invoice','cancel')"/>
+                            <field name="doctor_id" readonly="state in ('invoice','cancel')"/>
+                            <field name="appointment_id" invisible="not appointment_id"/>
+                            <field name="appointment_reason" invisible="not appointment_reason"/>
+                            <field name="inpatient_id" readonly="1" invisible="not inpatient_id"/>
+                            <field name="screening_id" readonly="1" invisible="not screening_id"/>
                         </group>
-                        <group string="Examination">
-                            <field name="examination_findings" nolabel="1"
-                                   placeholder="Examination Findings"
-                                   widget="text" colspan="2"/>
+                        <group string="Category &amp; Claim">
+                            <field name="patient_category"/>
+                            <field name="claim" widget="radio"/>
+                            <field name="referred_by" placeholder="Referred by Doctor / Hospital..."/>
+                            <field name="patient_phone" readonly="1"/>
+                            <field name="patient_age" readonly="1"/>
+                            <field name="patient_gender"/>
                         </group>
-                        <group string="Diagnosis &amp; Plan">
-                            <field name="provisional_diagnosis" nolabel="1"
-                                   placeholder="Provisional Diagnosis"
-                                   widget="text" colspan="2"/>
-                            <field name="treatment_notes" nolabel="1"
-                                   placeholder="Treatment Notes / Plan"
-                                   widget="text" colspan="2"/>
+                    </group>
+                    <group string="Fee &amp; Accounts Payment">
+                        <group>
+                            <field name="registration_fee" widget="monetary"/>
+                            <field name="category_fee" widget="monetary" readonly="1"/>
                         </group>
-                        <group string="Follow-Up">
-                            <field name="followup_date"/>
-                            <field name="followup_notes"/>
+                        <group>
+                            <field name="accounts_payment_status" widget="badge"
+                                   decoration-success="accounts_payment_status == 'received'"
+                                   decoration-warning="accounts_payment_status == 'pending'"
+                                   decoration-info="accounts_payment_status == 'waived'"/>
+                            <field name="payment_amount_received" widget="monetary" readonly="1"/>
+                            <field name="payment_received_date" readonly="1"/>
+                            <button name="action_receive_registration_fee" type="object"
+                                    string="Mark Payment Received by Accounts"
+                                    class="btn btn-outline-success mt-2"
+                                    invisible="accounts_payment_status == 'received'"
+                                    icon="fa-check"/>
                         </group>
                     </group>
                 </page>
 
-                <!-- §9.5 Referral Details tab -->
+
+                <!-- Referral Details tab -->
                 <page string="Referral Details" name="referral_tab"
                       invisible="not is_referred">
                     <group>
@@ -94,18 +381,7 @@
                            nolabel="1"/>
                 </page>
 
-                <page string="Procedures" name="procedures"
-                      invisible="outcome != 'procedure'">
-                    <field name="procedure_prescription_ids">
-                        <list>
-                            <field name="reference"/>
-                            <field name="procedure_id"/>
-                            <field name="no_of_sessions"/>
-                            <field name="start_date"/>
-                            <field name="state" widget="badge"/>
-                        </list>
-                    </field>
-                </page>
+
 
                 <page string="Observing Interns" name="interns">
                     <field name="observer_intern_ids" widget="many2many_tags"/>
@@ -119,6 +395,90 @@
 
         </field>
     </record>
+
+    <!-- Outpatient Search View Extension: Department Login & Filter -->
+    <record id="view_outpatient_search_santhigiri" model="ir.ui.view">
+        <field name="name">hospital.outpatient.search.santhigiri</field>
+        <field name="model">hospital.outpatient</field>
+        <field name="inherit_id" ref="base_hospital_management.hospital_outpatient_view_search"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='patient_id']" position="after">
+                <field name="cop_no" string="COP No."/>
+                <field name="dop_no" string="DOP No."/>
+                <field name="uhid_no" string="UHID No."/>
+                <field name="department_id" string="Department"/>
+                <field name="doctor_id" string="Doctor"/>
+                <field name="referred_by"/>
+                <separator/>
+                <!-- Department Login Filter: Fetches patients allotted to user's department -->
+                <filter string="My Department Patients" name="my_dept"
+                        domain="[('department_id.member_ids.user_id', '=', uid)]"/>
+                <filter string="Today's Department Queue" name="today_my_dept"
+                        domain="[('department_id.member_ids.user_id', '=', uid),
+                                 ('registration_datetime', '&gt;=', context_today().strftime('%Y-%m-%d 00:00:00'))]"/>
+                <separator/>
+                <filter string="Today's Registrations" name="today_registrations"
+                        domain="[('registration_datetime', '&gt;=', context_today().strftime('%Y-%m-%d 00:00:00')),
+                                 ('registration_datetime', '&lt;=', context_today().strftime('%Y-%m-%d 23:59:59'))]"/>
+                <filter string="New Visit" name="visit_new"
+                        domain="[('visit_type', '=', 'new')]"/>
+                <filter string="Follow-up Visit" name="visit_followup"
+                        domain="[('visit_type', '=', 'followup')]"/>
+                <filter string="Claim (Yes)" name="claim_yes"
+                        domain="[('claim', '=', 'yes')]"/>
+                <separator/>
+                <filter string="Jeevanam" name="cat_jeevanam"
+                        domain="[('patient_category', '=', 'jeevanam')]"/>
+                <filter string="Pay Ward" name="cat_payward"
+                        domain="[('patient_category', '=', 'payward')]"/>
+                <filter string="Amrutham" name="cat_amrutham"
+                        domain="[('patient_category', '=', 'amrutham')]"/>
+                <separator/>
+                <filter string="Payment Pending" name="payment_pending"
+                        domain="[('accounts_payment_status', '=', 'pending')]"/>
+                <filter string="Payment Received" name="payment_received"
+                        domain="[('accounts_payment_status', '=', 'received')]"/>
+                <group name="group_by">
+                    <filter string="Department" name="group_dept"
+                            context="{'group_by': 'department_id'}"/>
+                    <filter string="Visit Type" name="group_visit_type"
+                            context="{'group_by': 'visit_type'}"/>
+                    <filter string="Category" name="group_category"
+                            context="{'group_by': 'patient_category'}"/>
+                    <filter string="Claim" name="group_claim"
+                            context="{'group_by': 'claim'}"/>
+                    <filter string="Payment Status" name="group_payment"
+                            context="{'group_by': 'accounts_payment_status'}"/>
+                    <filter string="Registration Date" name="group_reg_date"
+                            context="{'group_by': 'registration_datetime:day'}"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Department Queue Action: For Department Login -->
+    <record id="action_department_patient_queue" model="ir.actions.act_window">
+        <field name="name">Department Patient Queue</field>
+        <field name="res_model">hospital.outpatient</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_outpatient_search_santhigiri"/>
+        <field name="context">{'search_default_my_dept': 1, 'search_default_today_registrations': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No patients currently in your department queue today.
+            </p>
+            <p>
+                Patients registered and allotted to your department will automatically appear here.
+            </p>
+        </field>
+    </record>
+
+    <!-- Department Queue Menuitem -->
+    <menuitem id="menu_department_patient_queue"
+              name="Department OP Queue"
+              parent="base_hospital_management.hospital_menu_appointment"
+              action="action_department_patient_queue"
+              sequence="3"/>
 
     <!-- Fee Master Views -->
     <record id="view_fee_master_list" model="ir.ui.view">

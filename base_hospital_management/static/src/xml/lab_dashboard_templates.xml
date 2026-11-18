@@ -47,7 +47,7 @@
                                                         <t t-set="index_id"
                                                            t-value="test.id"/>
                                                         <tr class="tests-confirmed"
-                                                            t-ref="tests_confirmed"
+                                                            t-att-data-ref="test.id"
                                                             t-on-click="_fetchTestData"
                                                             t-att-data-index="index_id">
                                                             <td>

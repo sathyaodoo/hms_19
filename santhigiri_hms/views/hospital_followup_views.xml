@@ -13,6 +13,8 @@
                     <button name="action_mark_missed" type="object"
                             string="Mark Missed" class="btn btn-warning"
                             invisible="status != 'pending'"/>
+                            <button name="action_mark_rescheduled" string="Reschedule" type="object"
+        class="btn-warning" invisible="status == 'rescheduled'"/>
                     <field name="status" widget="statusbar"/>
                 </header>
                 <sheet>
@@ -26,7 +28,7 @@
                             <field name="source_op_id"/>
                             <field name="source_ip_id"/>
                             <field name="rescheduled_to"
-                                   invisible="status != 'rescheduled'"/>
+                                   />
                         </group>
                     </group>
                     <field name="reason" placeholder="Follow-up instructions..."/>

@@ -1,0 +1,232 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ══ PROCEDURE SCHEDULE FORM VIEW (STANDARD NATIVE ODOO DESIGN) ═════ -->
+    <record id="view_hospital_procedure_schedule_form" model="ir.ui.view">
+        <field name="name">hospital.procedure.schedule.form</field>
+        <field name="model">hospital.procedure.schedule</field>
+        <field name="arch" type="xml">
+            <form string="Case Sheet (Procedure Schedule)">
+                <header>
+                    <button name="action_open_case_sheet" type="object" string="Case Sheet View" class="btn btn-primary" icon="fa-file-text-o"/>
+                    <button name="action_open_treatment" type="object" string="Treatment Orders" class="btn btn-secondary" icon="fa-medkit"/>
+                    <button name="action_open_medicine_schedule" type="object" string="Medicine Schedule" class="btn btn-secondary" icon="fa-stethoscope"/>
+                </header>
+                <sheet>
+                    <!-- Hidden technical fields -->
+                    <field name="schedule_type" invisible="1"/>
+                    <field name="inpatient_id" invisible="1"/>
+                    <field name="outpatient_id" invisible="1"/>
+                    <field name="bed_id" invisible="1"/>
+                    <field name="room_id" invisible="1"/>
+
+                    <div class="oe_button_box" name="button_box">
+                        <button class="oe_stat_button" type="object" icon="fa-calendar-check-o">
+                            <field name="line_count" widget="statinfo" string="Sessions"/>
+                        </button>
+                    </div>
+
+                    <div class="oe_title">
+                        <span class="o_form_label text-muted">Case Sheet (Procedure Schedule)</span>
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
+
+                    <!-- Patient & Clinical Details in Standard Odoo 2-Column Groups -->
+                    <group>
+                        <group string="Patient Information">
+                            <field name="patient_id" options="{'no_create': True}"/>
+                            <field name="uhid_no" readonly="1" string="ID / UHID No."/>
+                            <field name="ip_no" readonly="1" string="IP / OP No."/>
+                            <field name="patient_category" string="Category"/>
+                            <field name="patient_gender" readonly="1"/>
+                            <field name="patient_age" readonly="1"/>
+                        </group>
+                        <group string="Clinical &amp; Ward Details">
+                            <field name="visit_date"/>
+                            <field name="department_id" options="{'no_create': True}"/>
+                            <field name="doctor_id" options="{'no_create': True}"/>
+                            <field name="room_no" string="Room No."/>
+                            <field name="bed_no" string="Bed No."/>
+                            <field name="discharge_date"/>
+                            <field name="review_date"/>
+                        </group>
+                    </group>
+
+                    <!-- Schedule New Procedure Session (Native Full-Width Odoo Groups) -->
+                    <group string="Schedule Procedure Session" class="mt-4">
+                        <group string="Timing &amp; Procedure">
+                            <field name="quick_date" string="Date"/>
+                            <label for="quick_start_time" string="Time Slot"/>
+                            <div class="d-flex align-items-center gap-2">
+                                <field name="quick_start_time" placeholder="Start Time" class="w-50"/>
+                                <span class="text-muted fw-bold">to</span>
+                                <field name="quick_end_time" placeholder="End Time" class="w-50"/>
+                            </div>
+                            <field name="quick_duration" string="Duration" placeholder="e.g. 45m"/>
+                            <field name="quick_procedure_id" string="Procedure"
+                                   context="{'default_is_procedure': True, 'default_type': 'service'}"
+                                   options="{'no_create': False, 'no_quick_create': False}"
+                                   placeholder="Select Procedure..."/>
+                        </group>
+                        <group string="Room, Staff &amp; Location">
+                            <field name="quick_treatment_room_id" string="Treatment Room" options="{'no_create': True}" placeholder="Select Room..."/>
+                            <field name="quick_staff_ids" widget="many2many_tags" string="Staff / Therapists" placeholder="Choose Staff..."/>
+                            <field name="quick_location_site" string="Location / Site" placeholder="e.g. All joints, Head, Back..."/>
+                            <field name="quick_notes" string="Clinical Notes" placeholder="e.g. E/A-HRIDAYARENJINI or instructions..."/>
+                        </group>
+                    </group>
+
+                    <!-- Medicines & Consumables + Add Action Button -->
+                    <group string="Medicines &amp; Consumables (Used in Session)">
+                        <group>
+                            <label for="quick_medicine_1" string="Medicine 1"/>
+                            <div class="d-flex align-items-center gap-2">
+                                <field name="quick_medicine_1"
+                                       context="{'default_medicine_ok': True, 'default_type': 'consu'}"
+                                       options="{'no_create': False, 'no_quick_create': False}"
+                                       placeholder="Medicine 1..." style="flex: 2;"/>
+                                <field name="quick_dosage_1" placeholder="Dose (e.g. 10)" style="flex: 1;"/>
+                                <field name="quick_unit_1" placeholder="Unit (ml)" style="flex: 1;"/>
+                            </div>
+                            <label for="quick_medicine_2" string="Medicine 2"/>
+                            <div class="d-flex align-items-center gap-2">
+                                <field name="quick_medicine_2"
+                                       context="{'default_medicine_ok': True, 'default_type': 'consu'}"
+                                       options="{'no_create': False, 'no_quick_create': False}"
+                                       placeholder="Medicine 2..." style="flex: 2;"/>
+                                <field name="quick_dosage_2" placeholder="Dose" style="flex: 1;"/>
+                                <field name="quick_unit_2" placeholder="Unit" style="flex: 1;"/>
+                            </div>
+                            <label for="quick_medicine_3" string="Medicine 3"/>
+                            <div class="d-flex align-items-center gap-2">
+                                <field name="quick_medicine_3"
+                                       context="{'default_medicine_ok': True, 'default_type': 'consu'}"
+                                       options="{'no_create': False, 'no_quick_create': False}"
+                                       placeholder="Medicine 3..." style="flex: 2;"/>
+                                <field name="quick_dosage_3" placeholder="Dose" style="flex: 1;"/>
+                                <field name="quick_unit_3" placeholder="Unit" style="flex: 1;"/>
+                            </div>
+                        </group>
+                        <group>
+                            <div class="d-flex flex-column align-items-center justify-content-center h-100 p-3 bg-light rounded border text-center">
+                                <p class="text-muted small mb-3">
+                                    Fill the session details above and click below to add this session to the schedule.
+                                </p>
+                                <button name="action_quick_add_line" type="object"
+                                        string="+ Add to Schedule"
+                                        class="btn btn-primary btn-lg fw-bold px-4 py-2"/>
+                            </div>
+                        </group>
+                    </group>
+
+                    <!-- Scheduled Sessions Table inside Notebook -->
+                    <notebook>
+                        <page string="Procedure Schedule Sessions" name="sessions">
+                            <field name="line_ids" nolabel="1">
+                                <list editable="bottom" create="1" delete="1"
+                                      decoration-info="status == 'updated'"
+                                      decoration-success="status == 'done'"
+                                      decoration-warning="status == 'in_progress'"
+                                      decoration-muted="status == 'cancelled'">
+                                    <field name="date" string="Date"/>
+                                    <field name="start_time" string="Start Time"/>
+                                    <field name="end_time" string="End Time"/>
+                                    <field name="procedure_id" string="Procedure"
+                                           context="{'default_is_procedure': True, 'default_type': 'service'}"
+                                           options="{'no_create': False, 'no_quick_create': False}"/>
+                                    <field name="medicine_display" string="Medicine" readonly="1"/>
+                                    <field name="duration" string="Duration"/>
+                                    <field name="location_site" string="Location / Site"/>
+                                    <field name="notes" string="Notes"/>
+                                    <field name="treatment_room_id" string="Treatment Room" options="{'no_create': True}"/>
+                                    <field name="staff_display" string="Staff" readonly="1"/>
+                                    <field name="status" string="Status" widget="badge"
+                                           decoration-info="status == 'updated'"
+                                           decoration-success="status == 'done'"
+                                           decoration-warning="status == 'in_progress'"
+                                           decoration-muted="status == 'scheduled'"/>
+                                    <button name="action_repeat" type="object" string="Repeat"
+                                            class="btn btn-sm btn-outline-secondary py-0 px-2"
+                                            title="Repeat this session on the next day"/>
+                                    <button name="action_delete" type="object" string="Delete"
+                                            class="btn btn-sm btn-outline-danger py-0 px-2"
+                                            title="Delete this scheduled session"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+
+                    <!-- Bottom Quick-Access Actions -->
+                    <div class="d-flex justify-content-center gap-3 my-4">
+                        <button name="action_open_treatment" type="object" string="Treatment Orders"
+                                class="btn btn-outline-secondary px-4 py-2" icon="fa-medkit"/>
+                        <button name="action_open_medicine_schedule" type="object" string="Medicine Schedule"
+                                class="btn btn-outline-secondary px-4 py-2" icon="fa-stethoscope"/>
+                        <button name="action_open_case_sheet" type="object" string="Case Sheet View"
+                                class="btn btn-outline-secondary px-4 py-2" icon="fa-file-text-o"/>
+                    </div>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- ══ PROCEDURE SCHEDULE LIST VIEW ═════════════════════════════════════ -->
+    <record id="view_hospital_procedure_schedule_list" model="ir.ui.view">
+        <field name="name">hospital.procedure.schedule.list</field>
+        <field name="model">hospital.procedure.schedule</field>
+        <field name="arch" type="xml">
+            <list string="Case Sheets (Procedure Schedules)">
+                <field name="name" string="Ref"/>
+                <field name="visit_date" string="Visit Date"/>
+                <field name="uhid_no" string="ID. No."/>
+                <field name="ip_no" string="IP / OP No."/>
+                <field name="patient_name" string="Patient Name"/>
+                <field name="patient_category" string="Category"/>
+                <field name="department_id" string="Department"/>
+                <field name="doctor_id" string="Doctor"/>
+                <field name="room_no" string="Room"/>
+                <field name="bed_no" string="Bed"/>
+                <field name="line_count" string="Sessions Scheduled"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ══ PROCEDURE SCHEDULE SEARCH VIEW ═══════════════════════════════════ -->
+    <record id="view_hospital_procedure_schedule_search" model="ir.ui.view">
+        <field name="name">hospital.procedure.schedule.search</field>
+        <field name="model">hospital.procedure.schedule</field>
+        <field name="arch" type="xml">
+            <search string="Search Procedure Schedules">
+                <field name="name" string="Schedule Ref"/>
+                <field name="patient_id" string="Patient"/>
+                <field name="uhid_no" string="ID No."/>
+                <field name="ip_no" string="IP No."/>
+                <field name="doctor_id" string="Doctor"/>
+                <field name="department_id" string="Department"/>
+                <filter name="inpatient" string="Inpatient (IP)" domain="[('schedule_type', '=', 'inpatient')]"/>
+                <filter name="outpatient" string="Outpatient (OP)" domain="[('schedule_type', '=', 'outpatient')]"/>
+                <group name="group_by">
+                    <filter name="group_department" string="Department" domain="[]" context="{'group_by': 'department_id'}"/>
+                    <filter name="group_doctor" string="Doctor" domain="[]" context="{'group_by': 'doctor_id'}"/>
+                    <filter name="group_date" string="Visit Date" domain="[]" context="{'group_by': 'visit_date'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- ══ PROCEDURE SCHEDULE ACTION ════════════════════════════════════════ -->
+    <record id="action_hospital_procedure_schedule" model="ir.actions.act_window">
+        <field name="name">Case Sheet (Procedure Schedule)</field>
+        <field name="res_model">hospital.procedure.schedule</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create a new Case Sheet (Procedure Schedule) for a patient!
+            </p>
+        </field>
+    </record>
+
+</odoo>
