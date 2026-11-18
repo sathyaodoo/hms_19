@@ -28,6 +28,33 @@ class HospitalCamp(models.Model):
     patient_count = fields.Integer(string='Patients Registered',
                                     compute='_compute_patient_count', store=True)
 
+    camp_in_charge_id = fields.Many2one(
+        'hr.employee', string='Camp In-Charge',
+        domain="[('job_id.name', 'in', ['Administrator', 'PRO'])]",
+        help='Employee in overall charge of coordinating this camp — '
+             'restricted to Administrator / PRO job positions')
+    doctor_ids = fields.Many2many(
+        'hr.employee', 'camp_doctor_rel', 'camp_id', 'emp_id',
+        string='Doctors',
+        domain="[('doctor', '=', True)]")
+    surgeon_intern_ids = fields.Many2many(
+        'hospital.intern', 'camp_intern_roster_rel', 'camp_id', 'intern_id',
+        string='House Surgeons / Interns',
+        domain="[('state', '=', 'active')]",
+        help='Interns from the Internship module assigned to this '
+             'camp — same source as "Observing Interns" on OP visits. '
+             'Filtered to currently Active interns only.')
+    reception_staff_ids = fields.Many2many(
+        'hr.employee', 'camp_reception_rel', 'camp_id', 'emp_id',
+        string='Reception Staff')
+    pharmacy_staff_ids = fields.Many2many(
+        'hr.employee', 'camp_pharmacy_rel', 'camp_id', 'emp_id',
+        string='Pharmacy Staff')
+    #marketing_staff_ids = fields.Many2many(
+        #'hr.employee', 'camp_marketing_rel', 'camp_id', 'emp_id',
+        #string='Marketing Staff',
+        #domain="[('is_marketing_staff', '=', True)]")
+
     state = fields.Selection([('planned', 'Planned'), ('active', 'Active'),
                                ('done', 'Completed'), ('cancelled', 'Cancelled')],
                               default='planned', tracking=True)

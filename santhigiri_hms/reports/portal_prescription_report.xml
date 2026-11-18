@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- OP prescription PDF downloadable from the patient portal.
+         Record-based (docs = hospital.outpatient) instead of the base
+         module's data-dict report, so it also shows the Santhigiri
+         fields: Anupanam, Route, Duration and Pathya/Apathya. -->
+    <record id="action_report_portal_op_prescription" model="ir.actions.report">
+        <field name="name">OP Prescription</field>
+        <field name="model">hospital.outpatient</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">santhigiri_hms.report_portal_op_prescription</field>
+        <field name="report_file">santhigiri_hms.report_portal_op_prescription</field>
+        <field name="print_report_name">'Prescription_%s' % (object.op_reference or '')</field>
+        <field name="binding_model_id" ref="base_hospital_management.model_hospital_outpatient"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <template id="report_portal_op_prescription">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <t t-call="web.external_layout">
+                    <div class="page">
+                        <h3 class="text-center mb-4">Prescription</h3>
+                        <table class="table table-sm table-borderless mb-4">
+                            <tr>
+                                <td><strong>Patient:</strong> <span t-field="doc.patient_id.name"/></td>
+                                <td><strong>Patient ID:</strong> <span t-field="doc.patient_id.patient_seq"/></td>
+                            </tr>
+                            <tr>
+                                <td><strong>OP Ref.:</strong> <span t-field="doc.op_reference"/></td>
+                                <td><strong>Date:</strong> <span t-field="doc.op_date"/></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Doctor:</strong> <span t-out="doc.doctor_id.doctor_id.name or ''"/></td>
+                                <td><strong>Age / Gender:</strong>
+                                    <span t-out="doc.patient_id.age or ''"/>
+                                    <span t-if="doc.patient_id.gender"> / <span t-field="doc.patient_id.gender"/></span>
+                                </td>
+                            </tr>
+                            <tr t-if="doc.patient_id.allergy_summary">
+                                <td colspan="2" class="text-danger"><strong>Allergies:</strong> <span t-field="doc.patient_id.allergy_summary"/></td>
+                            </tr>
+                            <tr t-if="doc.provisional_diagnosis">
+                                <td colspan="2"><strong>Diagnosis:</strong> <span t-field="doc.provisional_diagnosis"/></td>
+                            </tr>
+                        </table>
+                        <table class="table table-sm table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>#</th><th>Medicine</th><th>Dose</th><th>When</th>
+                                    <th>Food</th><th>Anupanam</th><th>Route</th><th>Days</th><th>Qty</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr t-foreach="doc.prescription_ids" t-as="line">
+                                    <td t-out="line_index + 1"/>
+                                    <td>
+                                        <span t-field="line.medicine_id.name"/>
+                                        <div t-if="line.pathya_apathya" class="small text-muted">
+                                            Pathya/Apathya: <span t-field="line.pathya_apathya"/>
+                                        </div>
+                                    </td>
+                                    <td t-out="line.no_intakes"/>
+                                    <td><span t-field="line.time"/></td>
+                                    <td><span t-field="line.note"/></td>
+                                    <td t-out="line.anupanam or ''"/>
+                                    <td><span t-field="line.route"/></td>
+                                    <td t-out="line.duration_days or ''"/>
+                                    <td t-out="line.quantity"/>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <p t-if="doc.followup_date" class="mt-4">
+                            <strong>Next follow-up:</strong> <span t-field="doc.followup_date"/>
+                            <span t-if="doc.followup_notes"> — <span t-field="doc.followup_notes"/></span>
+                        </p>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>

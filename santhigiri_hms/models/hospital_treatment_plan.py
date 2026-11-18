@@ -287,12 +287,19 @@ class HospitalTPMedicine(models.Model):
 
 
 class HospitalMedicationPlan(models.Model):
-    """IP Medication Plan — for medicines billed directly to patient account."""
+    """Medication Plan — for medicines billed directly to patient
+    account. Was IP-only; now also reachable from OP visits, same
+    concept as hospital.procedure.prescription's outpatient_id/
+    inpatient_id pair — both origin fields are optional, at least one
+    is expected to be set, and nothing else about this model needs to
+    change to support either origin."""
     _name = 'hospital.medication.plan'
-    _description = 'IP Medication Plan (Patient Medicines)'
+    _description = 'Medication Plan (Patient Medicines)'
 
     inpatient_id = fields.Many2one('hospital.inpatient', string='IP Admission',
                                     ondelete='cascade', index=True)
+    outpatient_id = fields.Many2one('hospital.outpatient', string='OP Visit',
+                                     ondelete='cascade', index=True)
     assessment_id = fields.Many2one('hospital.op.assessment', string='Initial Assessment',
                                      ondelete='cascade', index=True)
     medicine_id = fields.Many2one('product.template', string='Medicine',

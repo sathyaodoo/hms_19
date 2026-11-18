@@ -26,7 +26,8 @@
                     <field name="test_ids">
                         <list>
                             <field name="name"/>
-                            <field name="default_normal_range" string="Normal Range"/>
+                            <field name="default_normal_range_male" string="Normal (M)"/>
+                            <field name="default_normal_range_female" string="Normal (F)"/>
                             <field name="default_uom_id" string="Unit"/>
                         </list>
                     </field>

@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <record id="action_report_lab_test_datewise" model="ir.actions.report">
+        <field name="name">Lab Test Datewise Report</field>
+        <field name="model">lab.test.date.report.wizard</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">santhigiri_hms.report_lab_test_datewise</field>
+        <field name="report_file">santhigiri_hms.report_lab_test_datewise</field>
+        <field name="print_report_name">'Lab Test Datewise Report'</field>
+    </record>
+
+    <template id="report_lab_test_datewise">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="wizard">
+                <t t-call="web.external_layout">
+                    <div class="page">
+
+                       
+
+                        <!-- Report Title -->
+                        <h2 style="text-align: center;
+                                   font-weight: bold;
+                                   margin-top: 0;
+                                   margin-bottom: 20px;">
+                            Lab Test Datewise Report
+                        </h2>
+
+                        <!-- Date Range -->
+                        <div style="margin-bottom: 15px;">
+                            <strong>Start Date:</strong>
+                            <span t-field="wizard.start_date"/>
+                            <br/>
+
+                            <strong>End Date:</strong>
+                            <span t-field="wizard.end_date"/>
+                        </div>
+
+                        <!-- Report Table -->
+                        <table style="width: 100%;
+                                      border-collapse: collapse;
+                                      font-size: 10px;
+                                      border: 1px solid black;">
+
+                            <thead>
+                                <tr>
+                                    <th style="border: 1px solid black;
+                                               padding: 6px;
+                                               text-align: center;">
+                                        S.No
+                                    </th>
+                                    <th style="border: 1px solid black;
+                                               padding: 6px;
+                                               text-align: center;">
+                                        Test Date
+                                    </th>
+                                    <th style="border: 1px solid black;
+                                               padding: 6px;
+                                               text-align: center;">
+                                        Patient Name
+                                    </th>
+                                    <th style="border: 1px solid black;
+                                               padding: 6px;
+                                               text-align: center;">
+                                        Test Name
+                                    </th>
+                                    <th style="border: 1px solid black;
+                                               padding: 6px;
+                                               text-align: center;">
+                                        Result
+                                    </th>
+                                    <th style="border: 1px solid black;
+                                               padding: 6px;
+                                               text-align: center;">
+                                        Normal Range
+                                    </th>
+                                    <th style="border: 1px solid black;
+                                               padding: 6px;
+                                               text-align: center;">
+                                        Unit
+                                    </th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+    <t t-foreach="lines" t-as="l">
+        <tr>
+            <td style="border: 1px solid black; padding: 5px; text-align: center;"><t t-out="l_index + 1"/></td>
+            <td style="border: 1px solid black; padding: 5px;"><t t-out="l['date']"/></td>
+            <td style="border: 1px solid black; padding: 5px;"><t t-out="l['patient']"/></td>
+            <td style="border: 1px solid black; padding: 5px;"><t t-out="l['test']"/></td>
+            <td style="border: 1px solid black; padding: 5px;"><t t-out="l['result']"/></td>
+            <td style="border: 1px solid black; padding: 5px;"><t t-out="l['normal']"/></td>
+            <td style="border: 1px solid black; padding: 5px;"><t t-out="l['unit']"/></td>
+        </tr>
+    </t>
+    <t t-if="not lines">
+        <tr>
+            <td colspan="7" style="border: 1px solid black; padding: 10px; text-align: center;">
+                No lab test records found for the selected dates.
+            </td>
+        </tr>
+    </t>
+</tbody>
+
+                        </table>
+
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+</odoo>
+                 
+                                  
+                                       
+
+                                       
+                                   

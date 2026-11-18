@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_hospital_inpatient_ip_assessment_buttons" model="ir.ui.view">
+        <field name="name">hospital.inpatient.ip.assessment.buttons</field>
+        <field name="model">hospital.inpatient</field>
+        <field name="inherit_id" ref="base_hospital_management.hospital_inpatient_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+
+                <button name="action_open_initial_assessment"
+                        type="object"
+                        class="oe_stat_button"
+                        icon="fa-stethoscope"
+                        string="Initial Assessment">
+                    <field name="assessment_count" widget="statinfo" string="Initial Assessment"/>
+                </button>
+
+                <button name="action_open_ip_reassessment"
+                        type="object"
+                        class="oe_stat_button"
+                        icon="fa-history"
+                        string="IP Reassessment">
+                    <field name="ip_reassessment_count" widget="statinfo" string="Reassessments"/>
+                </button>
+
+            </xpath>
+        </field>
+    </record>
+</odoo>

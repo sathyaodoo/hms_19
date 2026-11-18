@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <record id="action_report_ip_assessment" model="ir.actions.report">
+        <field name="name">Initial Assessment Sheet - IP</field>
+        <field name="model">hospital.ip.assessment</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">santhigiri_hms.report_ip_assessment</field>
+        <field name="print_report_name">'IP_Initial_Assessment_' + (object.reference or '')</field>
+        <field name="binding_model_id" ref="model_hospital_ip_assessment"/>
+    </record>
+
+    <template id="report_ip_assessment_slip">
+        <div class="text-center">
+            <h4><strong>Santhigiri Ayurveda Medical College Hospital</strong></h4>
+            <h5><i>Initial Assessment Sheet - IP</i></h5>
+        </div>
+
+        <p><strong>Form No:</strong> SAMC/CS/11</p>
+
+        <table class="table table-borderless table-sm">
+            <tr>
+                <td><strong>Patient's Name:</strong> <span t-field="doc.patient_id"/></td>
+                <td><strong>Patient No:</strong> <span t-field="doc.patient_seq"/></td>
+            </tr>
+            <tr>
+                <td><strong>IP Admission:</strong> <span t-field="doc.inpatient_id"/></td>
+                <td><strong>Consultant:</strong> <span t-field="doc.doctor_id"/></td>
+            </tr>
+            <tr>
+                <td><strong>Department:</strong> <span t-field="doc.department_id"/></td>
+                <td><strong>Assessment Date &amp; Time:</strong>
+                    <span t-field="doc.assessment_datetime"/></td>
+            </tr>
+            <tr>
+                <td><strong>UHID No:</strong> <span t-field="doc.uhid_no"/></td>
+                <td><strong>COP No:</strong> <span t-field="doc.cop_no"/></td>
+            </tr>
+            <tr>
+                <td><strong>DOP No:</strong> <span t-field="doc.dop_no"/></td>
+                <td><strong>Assessment Reference:</strong> <span t-field="doc.reference"/></td>
+            </tr>
+        </table>
+
+        <table class="table table-bordered table-sm">
+            <tr>
+                <th colspan="6" class="text-center">Vitals</th>
+            </tr>
+            <tr>
+                <th>Respiratory Rate</th>
+                <td><span t-field="doc.respiratory_rate"/></td>
+                <th>Heart Rate</th>
+                <td><span t-field="doc.heart_rate"/></td>
+                <th>Pulse Rate</th>
+                <td><span t-field="doc.pulse_rate"/></td>
+            </tr>
+            <tr>
+                <th>Height</th>
+                <td><span t-field="doc.height"/></td>
+                <th>Weight</th>
+                <td><span t-field="doc.weight"/></td>
+                <th>BMI</th>
+                <td><span t-field="doc.bmi"/></td>
+            </tr>
+            <tr>
+                <th>Blood Pressure</th>
+                <td><span t-field="doc.bp"/></td>
+                <th>Temperature</th>
+                <td><span t-field="doc.temperature"/></td>
+                <th>GRBS</th>
+                <td><span t-field="doc.grbs"/></td>
+            </tr>
+        </table>
+
+        <table class="table table-bordered table-sm">
+            <tr>
+                <th colspan="2" class="text-center">Screening &amp; Clinical Notes</th>
+            </tr>
+            <tr>
+                <th>Nutritional Screening</th>
+                <td><span t-field="doc.nutritional_screening"/></td>
+            </tr>
+            <tr>
+                <th>Pain Assessment</th>
+                <td><span t-field="doc.pain_score"/></td>
+            </tr>
+            <tr>
+                <th>Complaint Duration</th>
+                <td><span t-field="doc.complaint_duration"/></td>
+            </tr>
+            <tr>
+                <th>Presenting Complaints</th>
+                <td><span t-field="doc.presenting_complaints"/></td>
+            </tr>
+            <tr>
+                <th>Current Medication</th>
+                <td><span t-field="doc.current_medication"/></td>
+            </tr>
+            <tr>
+                <th>Treatment History</th>
+                <td><span t-field="doc.treatment_history"/></td>
+            </tr>
+            <tr>
+                <th>Investigations Recommended</th>
+                <td><span t-field="doc.investigations_recommended"/></td>
+            </tr>
+        </table>
+
+        <table class="table table-bordered table-sm">
+            <tr>
+                <th colspan="2" class="text-center">Care Plan Strategy</th>
+            </tr>
+            <tr>
+                <th>Curative</th>
+                <td><span t-field="doc.care_plan_curative"/></td>
+            </tr>
+            <tr>
+                <th>Preventive</th>
+                <td><span t-field="doc.care_plan_preventive"/></td>
+            </tr>
+            <tr>
+                <th>Rehabilitative</th>
+                <td><span t-field="doc.care_plan_rehabilitative"/></td>
+            </tr>
+            <tr>
+                <th>Desired Outcome</th>
+                <td><span t-field="doc.care_plan_outcome"/></td>
+            </tr>
+        </table>
+
+        <table class="table table-bordered table-sm">
+            <thead>
+                <tr>
+                    <th colspan="8" class="text-center">Medication Order</th>
+                </tr>
+                <tr>
+                    <th>Medicine</th>
+                    <th>Route</th>
+                    <th>Dosage</th>
+                    <th>Frequency</th>
+                    <th>Duration (Days)</th>
+                    <th>Start Date</th>
+                    <th>Anupana</th>
+                    <th>Instructions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr t-foreach="doc.medication_plan_ids" t-as="line">
+                    <td><span t-field="line.medicine_id"/></td>
+                    <td><span t-field="line.route"/></td>
+                    <td><span t-field="line.dosage"/></td>
+                    <td><span t-field="line.frequency"/></td>
+                    <td><span t-field="line.duration_days"/></td>
+                    <td><span t-field="line.start_date"/></td>
+                    <td><span t-field="line.anupanam"/></td>
+                    <td><span t-field="line.instructions"/></td>
+                </tr>
+                <tr t-if="not doc.medication_plan_ids">
+                    <td colspan="8" class="text-center">No medication orders recorded</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <table class="table table-bordered table-sm">
+            <thead>
+                <tr>
+                    <th colspan="7" class="text-center">Treatment Order</th>
+                </tr>
+                <tr>
+                    <th>Procedure</th>
+                    <th>Frequency</th>
+                    <th>Sessions</th>
+                    <th>Start Date</th>
+                    <th>Therapists</th>
+                    <th>Instructions</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr t-foreach="doc.treatment_plan_ids" t-as="line">
+                    <td><span t-field="line.procedure_id"/></td>
+                    <td><span t-field="line.frequency"/></td>
+                    <td><span t-field="line.no_of_sessions"/></td>
+                    <td><span t-field="line.start_date"/></td>
+                    <td>
+                        <t t-foreach="line.therapist_ids" t-as="therapist">
+                            <span t-field="therapist.name"/>
+                            <t t-if="not therapist_last">, </t>
+                        </t>
+                    </td>
+                    <td><span t-field="line.instructions"/></td>
+                    <td><span t-field="line.state"/></td>
+                </tr>
+                <tr t-if="not doc.treatment_plan_ids">
+                    <td colspan="7" class="text-center">No treatment orders recorded</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <table class="table table-borderless table-sm mt-4">
+            <tr>
+                <td><strong>Consultant Signature:</strong>
+                    <span t-field="doc.consultant_signoff_id"/></td>
+            </tr>
+            <tr>
+                <td><strong>Sign-off Date:</strong>
+                    <span t-field="doc.signoff_date"/></td>
+                <td><strong>Sign-off Time:</strong>
+                    <span t-field="doc.signoff_time"/></td>
+            </tr>
+        </table>
+    </template>
+
+    <template id="report_ip_assessment">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <t t-call="web.basic_layout">
+                    <div class="page">
+                        <t t-call="santhigiri_hms.report_ip_assessment_slip"/>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+</odoo>

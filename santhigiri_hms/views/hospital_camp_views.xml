@@ -46,6 +46,17 @@
                             <field name="state" invisible="1"/>
                         </group>
                     </group>
+
+                    <!-- Camp In-Charge: a prominent, standalone
+                         selector — deliberately its own single-field
+                         group (not tucked inside the two columns
+                         above), so it reads as a distinct decision
+                         point on the form rather than just another
+                         detail field. -->
+                    <group>
+                        <field name="camp_in_charge_id"/>
+                    </group>
+
                     <!-- Camp Report Summary -->
                     <group string="Camp Report Summary" name="report_summary">
                         <group>
@@ -73,6 +84,15 @@
                                     <field name="state" widget="badge"/>
                                 </list>
                             </field>
+                        </page>
+                        <page string="Camp Staff Roster" name="staff_roster">
+                            <group>
+                                <field name="doctor_ids" widget="many2many_tags"/>
+                                <field name="surgeon_intern_ids" widget="many2many_tags"/>
+                                <field name="reception_staff_ids" widget="many2many_tags"/>
+                                <field name="pharmacy_staff_ids" widget="many2many_tags"/>
+                                <!--<field name="marketing_staff_ids" widget="many2many_tags"/>-->
+                            </group>
                         </page>
                         <page string="Notes" name="notes">
                             <field name="notes"

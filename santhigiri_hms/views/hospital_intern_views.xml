@@ -49,6 +49,7 @@
                                    domain="[('share','=',False)]"/>
                         </group>
                         <group string="Academic Registration">
+                            <field name="provisional_register_no"/>
                             <field name="college_id"/>
                             <field name="college_register_no"/>
                             <field name="university_reg_no"/>

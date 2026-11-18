@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- Add procedure and Ayurvedic medicine fields to product form -->
+    <!-- Add procedure, Ayurvedic medicine, and Prakarana fields to product form
+         Inherits base_hospital_management product view which has medicine_ok -->
     <record id="view_product_template_santhigiri" model="ir.ui.view">
         <field name="name">product.template.santhigiri.form</field>
         <field name="model">product.template</field>
@@ -22,6 +23,35 @@
                        invisible="not medicine_ok"/>
                 <field name="default_route"
                        invisible="not medicine_ok"/>
+                <!-- Prakarana: visible only for Hospital company -->
+                <field name="show_prakarana" invisible="1"/>
+                <field name="prakarana"
+                       invisible="not show_prakarana"
+                       placeholder="Enter Prakarana"/>
+                <field name="dose" invisible="not show_prakarana"/>
+                <field name="indication" invisible="not show_prakarana"/>
+            </xpath>
+            <!-- Brand: always visible in the Hospital company
+                 (base module showed it only when Vaccine/Medicine was ticked) -->
+            <xpath expr="//field[@name='medicine_brand_id']" position="attributes">
+                <attribute name="invisible">not show_prakarana</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Medicine Brand master: show Prakarana column in the medicine list
+         (only in the Hospital company) -->
+    <record id="view_medicine_brand_form_santhigiri" model="ir.ui.view">
+        <field name="name">medicine.brand.santhigiri.form</field>
+        <field name="model">medicine.brand</field>
+        <field name="inherit_id" ref="base_hospital_management.medicine_brand_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='medicine_ids']" position="before">
+                <field name="show_prakarana" invisible="1"/>
+            </xpath>
+            <xpath expr="//field[@name='medicine_ids']/list/field[@name='name']" position="after">
+                <field name="prakarana"
+                       column_invisible="not parent.show_prakarana"/>
             </xpath>
         </field>
     </record>

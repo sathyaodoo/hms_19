@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <!-- IP Reassessment List -->
+    <record id="view_hospital_ip_reassessment_list" model="ir.ui.view">
+        <field name="name">hospital.ip.reassessment.list</field>
+        <field name="model">hospital.ip.reassessment</field>
+        <field name="arch" type="xml">
+            <list string="IP Reassessment Charts">
+                <field name="reference"/>
+                <field name="patient_id"/>
+                <field name="patient_seq"/>
+                <field name="inpatient_id"/>
+                <field name="assessment_datetime"/>
+                <field name="doctor_id"/>
+                <field name="bp"/>
+                <field name="pulse_rate"/>
+                <field name="state" widget="badge"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- IP Reassessment Form -->
+    <record id="view_hospital_ip_reassessment_form" model="ir.ui.view">
+        <field name="name">hospital.ip.reassessment.form</field>
+        <field name="model">hospital.ip.reassessment</field>
+        <field name="arch" type="xml">
+            <form string="IP Reassessment Chart">
+
+                <header>
+                    <button name="action_confirm"
+                            type="object"
+                            string="Confirm"
+                            class="btn-primary"
+                            invisible="state != 'draft'"/>
+
+                    <button name="action_print"
+                            type="object"
+                            string="Print"
+                            class="btn-secondary"
+                            icon="fa-print"/>
+
+                    <button name="action_reset_to_draft"
+                            type="object"
+                            string="Reset to Draft"
+                            invisible="state != 'confirmed'"/>
+
+                    <field name="state"
+                           widget="statusbar"
+                           statusbar_visible="draft,confirmed"/>
+                </header>
+
+                <sheet>
+
+                    <div class="oe_title">
+                        <h1>
+                            <field name="reference" readonly="1"/>
+                        </h1>
+                        <span class="text-muted">
+                            Form No: SAMC/CS/14
+                        </span>
+                    </div>
+
+                    <group>
+                        <group string="Patient / Visit">
+                            <field name="inpatient_id"
+                                   string="IP Admission"
+                                   readonly="state == 'confirmed'"/>
+
+                            <field name="patient_id" readonly="1"/>
+                            <field name="patient_seq" readonly="1"/>
+
+                            <field name="doctor_id"
+                                   string="Consultant"
+                                   readonly="1"/>
+                        </group>
+
+                        <group string="Identifiers">
+                            <field name="assessment_datetime"
+                                   readonly="state == 'confirmed'"/>
+
+                            <field name="uhid_no"/>
+                            <field name="cop_no"/>
+                            <field name="dop_no"/>
+                        </group>
+                    </group>
+
+                    <group string="Observations">
+                        <group>
+                            <field name="bp"/>
+                            <field name="pulse_rate"
+                                   string="PR (Pulse Rate, bpm)"/>
+                            <field name="naadi"/>
+                        </group>
+                    </group>
+
+                    <separator string="Medication with Route / Dose / Time / Duration / Anupana / Pathya-Apathya"/>
+
+                    <field name="prescription_ids"
+                           readonly="state == 'confirmed'">
+                        <list editable="bottom">
+                            <field name="medicine_id"
+                                   string="Medicine"
+                                   required="1"/>
+                            <field name="route"
+                                   string="Route"/>
+                            <field name="no_intakes"
+                                   string="Dose"/>
+                            <field name="time"
+                                   string="Time"/>
+                            <field name="duration_days"
+                                   string="Duration (Days)"/>
+                            <field name="anupanam"
+                                   string="Anupana"/>
+                            <field name="pathya_apathya"
+                                   string="Pathya-Apathya"/>
+                        </list>
+                    </field>
+
+                    <group string="Sign-off"
+                           invisible="state != 'confirmed'">
+                        <field name="consultant_signoff_id"/>
+                        <field name="signoff_date"/>
+                        <field name="signoff_time"/>
+                    </group>
+
+                </sheet>
+
+                <chatter/>
+
+            </form>
+        </field>
+    </record>
+
+    <!-- IP Reassessment Action -->
+    <record id="action_hospital_ip_reassessment"
+            model="ir.actions.act_window">
+        <field name="name">IP Reassessments</field>
+        <field name="res_model">hospital.ip.reassessment</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- IP Reassessment Menu -->
+    <menuitem id="menu_hospital_ip_reassessment"
+              name="IP Reassessments"
+              parent="base_hospital_management.hospital_menu_root"
+              action="action_hospital_ip_reassessment"
+              sequence="65"/>
+
+</odoo>

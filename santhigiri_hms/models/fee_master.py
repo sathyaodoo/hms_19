@@ -17,7 +17,7 @@ class HospitalFeeMaster(models.Model):
         ('payward', 'Pay Ward'),
         ('amrutham', 'Amrutham'),
         ('general', 'General'),
-        ('vip', 'VIP'),
+        #('vip', 'VIP'),
         ('senior_citizen', 'Senior Citizen'),
         ('bpl', 'BPL / Karunyam'),
         ('ardram', 'Ardram'),

@@ -24,16 +24,21 @@ class HospitalProcedurePrescription(models.Model):
         index=True,
     )
     outpatient_id = fields.Many2one('hospital.outpatient', string='OP Visit', ondelete='set null')
-    patient_id = fields.Many2one('res.partner', string='Patient',
+    inpatient_id = fields.Many2one('hospital.inpatient', string='IP Admission', ondelete='set null')
+    patient_id = fields.Many2one('res.partner', string='Patient', required=True,
                                   domain=[('patient_seq', '!=', False)])
     patient_seq = fields.Char(related='patient_id.patient_seq', store=True, string='Patient No.')
     op_reference = fields.Char(related='outpatient_id.op_reference', store=True, string='OP Reference')
+    ip_reference = fields.Char(related='inpatient_id.name', store=True, string='IP Reference')
 
     doctor_id = fields.Many2one('hr.employee', string='Prescribed By (Doctor)')
     procedure_id = fields.Many2one('product.template', string='Procedure / Therapy',
                                     domain=[('is_procedure', '=', True)], required=True)
     no_of_sessions = fields.Integer(string='Total Sessions', required=True, default=7)
     start_date = fields.Date(string='Start Date', required=True, default=fields.Date.today)
+    #add end date
+    end_date = fields.Date(string='End Date', required=True, default=fields.Date.today)
+    
     instructions = fields.Text(string='Special Instructions')
     site_location = fields.Char(string='Site / Location',
                                  help='e.g. Lower back, Left knee, Full body')

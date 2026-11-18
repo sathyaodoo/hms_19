@@ -240,3 +240,10 @@ class PrescriptionLine(models.Model):
                         'prescription_date': fields.Date.today(),
                     })
                 line.sudo().write({'prescription_id': presc.id})
+    
+    # Links to IP Reassessment (Form SAMC/CS/14)
+    ip_reassessment_id = fields.Many2one(
+        'hospital.ip.reassessment',
+        string='IP Reassessment',
+        ondelete='cascade',
+    )

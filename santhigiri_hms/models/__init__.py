@@ -1,11 +1,17 @@
 # -*- coding: utf-8 -*-
 from . import res_partner
+#from . import res_company
+#from . import res_config_settings
+from . import patient_medical_history
+from . import patient_previous_prescription
+from . import hospital_registration_fee
 from . import fee_master
 from . import hr_employee
 from . import ir_ui_menu
 from . import prescription_line
 from . import hospital_outpatient
 from . import hospital_inpatient
+from . import hospital_bed
 from . import patient_room
 from . import hospital_casualty
 from . import casualty_duty_roster
@@ -26,10 +32,14 @@ from . import product_template
 from . import lab_test_master
 from . import patient_emr
 from . import op_assessment
+from . import ip_assessment
 from . import op_reassessment
 from . import hospital_appointment
 from . import hospital_prescription
 from . import hospital_procedure_schedule
 from . import nursing_station
 from . import hospital_screening
+from . import patient_portal
 
+from . import lab_test_date_report_wizard
+from . import ip_reassessment

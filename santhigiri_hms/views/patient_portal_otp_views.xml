@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Audit log of portal login codes (the codes themselves are never stored) -->
+    <record id="view_patient_portal_otp_list" model="ir.ui.view">
+        <field name="name">santhigiri.patient.portal.otp.list</field>
+        <field name="model">santhigiri.patient.portal.otp</field>
+        <field name="arch" type="xml">
+            <list create="0" edit="0" decoration-success="state == 'verified'"
+                  decoration-danger="state == 'blocked'" decoration-muted="state == 'expired'">
+                <field name="create_date" string="Requested On"/>
+                <field name="patient_seq"/>
+                <field name="patient_id"/>
+                <field name="channel"/>
+                <field name="ip_address"/>
+                <field name="attempts"/>
+                <field name="state"/>
+                <field name="verified_at"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_patient_portal_otp_search" model="ir.ui.view">
+        <field name="name">santhigiri.patient.portal.otp.search</field>
+        <field name="model">santhigiri.patient.portal.otp</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="patient_id"/>
+                <field name="ip_address"/>
+                <filter name="blocked" string="Blocked" domain="[('state', '=', 'blocked')]"/>
+                <filter name="verified" string="Successful logins" domain="[('state', '=', 'verified')]"/>
+                <group>
+                    <filter name="group_patient" string="Patient" context="{'group_by': 'patient_id'}"/>
+                    <filter name="group_state" string="Status" context="{'group_by': 'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_patient_portal_otp" model="ir.actions.act_window">
+        <field name="name">Patient Portal Logins</field>
+        <field name="res_model">santhigiri.patient.portal.otp</field>
+        <field name="view_mode">list</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No portal login attempts yet</p>
+            <p>Every login code requested on /patient/login is listed here.</p>
+        </field>
+    </record>
+
+    <menuitem id="menu_config_patient_portal_otp" name="Patient Portal Logins"
+              parent="base_hospital_management.hospital_menu_configuration"
+              action="action_patient_portal_otp"
+              groups="base_hospital_management.base_hospital_management_group_manager"
+              sequence="90"/>
+
+    <!-- Note in Odoo's "Portal Access Management" window (Grant portal access) -->
+    <record id="portal_wizard_view_patient_note" model="ir.ui.view">
+        <field name="name">portal.wizard.form.patient.note</field>
+        <field name="model">portal.wizard</field>
+        <field name="inherit_id" ref="portal.wizard_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='welcome_message']" position="before">
+                <div class="alert alert-info mb-3" role="status">
+                    <strong>Patients:</strong> the login is the <strong>Patient ID</strong> and the
+                    e-mail is optional. With an e-mail, Odoo sends the invitation to set the
+                    password. Without an e-mail, the patient creates the password at
+                    <strong>/patient/login</strong> with "Log in with a one-time code".
+                </div>
+            </xpath>
+        </field>
+    </record>
+</odoo>

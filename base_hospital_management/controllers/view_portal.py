@@ -24,31 +24,40 @@ from odoo.http import request
 
 
 class ViewPortal(http.Controller):
-    """Class holding portal view methods"""
+    """Standard /my portal pages of the base module.
 
-    @http.route('/my/vaccinations', type='http', auth="public", website=True)
+    SECURITY FIX: the original routes were auth="public" and
+    /my/tests/<id> browsed ANY lab test with sudo(), so anybody could read
+    any patient's results by changing the number in the URL. Now:
+      * auth="user"  -> only logged-in users,
+      * every search is filtered on the logged-in user's own partner,
+      * the raw SQL on ir_attachment was replaced by an ORM search.
+    """
+
+    def _partner(self):
+        return request.env.user.partner_id
+
+    def _first_attachment(self, model, res_id):
+        attachment = request.env['ir.attachment'].sudo().search(
+            [('res_model', '=', model), ('res_id', '=', res_id)], limit=1)
+        return attachment.id or False
+
+    @http.route('/my/vaccinations', type='http', auth="user", website=True)
     def portal_my_vaccine(self, **kw):
         """Function for rendering vaccination details of portal user"""
         vaccination_list = []
         for rec in request.env['hospital.vaccination'].sudo().search(
-                [('patient_id.user_ids.id', '=', request.uid)]):
-            request.env.cr.execute(
-                f"""SELECT id FROM ir_attachment WHERE res_id = {rec.id} 
-                    and res_model='hospital.vaccination' """)
-            attachment_id = False
-            attachment = request.env.cr.dictfetchall()
-            if attachment:
-                attachment_id = attachment[0]['id']
-            data = {
+                [('patient_id', '=', self._partner().id)]):
+            vaccination_list.append({
                 'id': rec.id,
                 'name': rec.name,
                 'vaccine_date': rec.vaccine_date,
                 'dose': rec.dose,
                 'vaccine_product_id': rec.vaccine_product_id.name,
                 'vaccine_price': rec.vaccine_price,
-                'attachment_id': attachment_id
-            }
-            vaccination_list.append(data)
+                'attachment_id': self._first_attachment(
+                    'hospital.vaccination', rec.id),
+            })
         values = {
             'vaccinations': vaccination_list,
             'page_name': 'vaccination'
@@ -56,21 +65,17 @@ class ViewPortal(http.Controller):
         return request.render("base_hospital_management.portal_my_vaccines",
                               values)
 
-    @http.route(['/my/tests'], type='http', auth="public", website=True)
+    @http.route(['/my/tests'], type='http', auth="user", website=True)
     def portal_my_tests(self, **kw):
         """Function for rendering tests of portal user"""
         tests_list = []
         for rec in request.env['patient.lab.test'].sudo().search(
-                [('patient_id.user_ids', '=', request.uid)]):
-            request.env['account.move'].sudo().search(
-                [('ref', '=', rec.test_id.name)
-                 ], limit=1)
-            data = {
+                [('patient_id', '=', self._partner().id)]):
+            tests_list.append({
                 'id': rec.id,
                 'name': rec.test_id.name,
                 'date': rec.date
-            }
-            tests_list.append(data)
+            })
         values = {
             'tests': tests_list,
             'page_name': 'lab_test'
@@ -78,28 +83,24 @@ class ViewPortal(http.Controller):
         return request.render("base_hospital_management.portal_my_tests",
                               values)
 
-    @http.route('/my/tests/<int:test_id>', type="http", auth="public",
+    @http.route('/my/tests/<int:test_id>', type="http", auth="user",
                 website=True)
-    def tests_view(self, test_id):
+    def tests_view(self, test_id, **kw):
         """Function for rendering test results of portal user"""
+        all_test = request.env['patient.lab.test'].sudo().search(
+            [('id', '=', test_id), ('patient_id', '=', self._partner().id)],
+            limit=1)
+        if not all_test:
+            return request.not_found()
         result_list = []
-        all_test = request.env['patient.lab.test'].sudo().browse(test_id)
-        test_result_ids = request.env['lab.test.result'].sudo().search(
-            [('id', 'in', all_test.result_ids.ids)])
-        for rec in test_result_ids:
-            query = f"""SELECT id FROM ir_attachment WHERE res_id = {rec.id} 
-                                and res_model='lab.test.result' """
-            request.env.cr.execute(query)
-            attachment_id = False
-            attachment = request.env.cr.dictfetchall()
-            if attachment:
-                attachment_id = attachment[0]['id']
+        for rec in all_test.result_ids:
             result_list.append({
                 'id': rec.id,
                 'name': rec.test_id.name,
                 'result': rec.result,
                 'price': rec.price,
-                'attachment_id': attachment_id,
+                'attachment_id': self._first_attachment(
+                    'lab.test.result', rec.id),
             })
         values = {
             'all_test_id': all_test.id,
@@ -109,12 +110,11 @@ class ViewPortal(http.Controller):
         return request.render(
             "base_hospital_management.portal_my_tests_results", values)
 
-    @http.route('/my/op', type='http', auth="public",
-                website=True)
+    @http.route('/my/op', type='http', auth="user", website=True)
     def portal_my_op(self, **kw):
         """Function for rendering prescriptions of portal user"""
         op = request.env['hospital.outpatient'].sudo().search_read(
-            [('patient_id.user_ids.id', '=', request.uid)],
+            [('patient_id', '=', self._partner().id)],
             ['op_reference', 'op_date', 'doctor_id', 'slot',
              'prescription_ids'])
         for record in op:

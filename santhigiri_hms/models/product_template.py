@@ -3,10 +3,16 @@
 product.template extension:
 - Adds procedure & therapy attributes (is_procedure, procedure_category, standard sessions, duration).
 - Adds Ayurvedic medicine attributes (ayurvedic_category, default anupanam, default route).
+- Adds Prakarana, dose, indication fields and company-based visibility helpers.
 - Auto-creates master records in pharmacy.medicine when medicines are created.
 - Auto-handles quick creation of medicines & procedures from prescription and treatment lines.
 """
 from odoo import api, fields, models
+
+
+def _is_hospital_company(env):
+    hospital = env.ref('base.main_company', raise_if_not_found=False)
+    return bool(hospital) and env.company == hospital
 
 
 class ProductTemplate(models.Model):
@@ -68,6 +74,28 @@ class ProductTemplate(models.Model):
         ('ear', 'Ear (Karnapurana)'),
     ], string='Standard Route', default='oral')
 
+    prakarana = fields.Char(
+        string='Prakarana',
+        tracking=True,
+        help='Prakarana of the product (visible only in the Hospital company).',
+    )
+
+    dose = fields.Char(string='Dose')
+    indication = fields.Char(string='Indication')
+
+    show_prakarana = fields.Boolean(
+        string='Show Prakarana',
+        compute='_compute_show_prakarana',
+        help='Technical field: True only when the currently selected '
+             'company is Santhigiri Ayurveda Medical Hospital.',
+    )
+
+    @api.depends_context('company')
+    def _compute_show_prakarana(self):
+        is_hospital = _is_hospital_company(self.env)
+        for product in self:
+            product.show_prakarana = is_hospital
+
     # ── Master Auto-Creation & Quick-Create Hooks ──────────────────────────────
     @api.model_create_multi
     def create(self, vals_list):
@@ -111,3 +139,20 @@ class ProductTemplate(models.Model):
             vals['type'] = 'service'
         record = self.create([vals])[0]
         return record.id, record.display_name
+
+
+class MedicineBrand(models.Model):
+    _inherit = 'medicine.brand'
+
+    show_prakarana = fields.Boolean(
+        string='Show Prakarana',
+        compute='_compute_show_prakarana',
+        help='Technical field: used to show the Prakarana column in the '
+             'medicine list only in the Hospital company.',
+    )
+
+    @api.depends_context('company')
+    def _compute_show_prakarana(self):
+        is_hospital = _is_hospital_company(self.env)
+        for brand in self:
+            brand.show_prakarana = is_hospital

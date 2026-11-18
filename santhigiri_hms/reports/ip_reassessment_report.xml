@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- IP Reassessment PDF Action -->
+    <record id="action_report_ip_reassessment" model="ir.actions.report">
+        <field name="name">IP Reassessment Chart</field>
+        <field name="model">hospital.ip.reassessment</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">santhigiri_hms.report_ip_reassessment</field>
+        <field name="print_report_name">'IP_Reassessment_' + (object.reference or '')</field>
+        <field name="binding_model_id" ref="model_hospital_ip_reassessment"/>
+    </record>
+
+    <!-- IP Reassessment Report -->
+    <template id="report_ip_reassessment_slip">
+        <div class="text-center">
+            <h5><i>IP Reassessment Chart</i></h5>
+        </div>
+
+        <p>Form No : SAMC/CS/14</p>
+
+        <table class="table table-borderless table-sm">
+            <tr>
+                <td>
+                    <strong>Patient's Name:</strong>
+                    <span t-field="doc.patient_id.name"/>
+                </td>
+                <td>
+                    <strong>Patient No:</strong>
+                    <span t-field="doc.patient_seq"/>
+                </td>
+                <td>
+                    <strong>IP Admission:</strong>
+                    <span t-field="doc.inpatient_id"/>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <strong>Date &amp; Time:</strong>
+                    <span t-field="doc.assessment_datetime"/>
+                </td>
+                <td>
+                    <strong>UHID No:</strong>
+                    <span t-field="doc.uhid_no"/>
+                </td>
+                <td>
+                    <strong>Consultant:</strong>
+                    <span t-field="doc.doctor_id"/>
+                </td>
+            </tr>
+            <tr>
+                <td><strong>COP No:</strong> <span t-field="doc.cop_no"/></td>
+                <td><strong>DOP No:</strong> <span t-field="doc.dop_no"/></td>
+                <td></td>
+            </tr>
+        </table>
+
+        <table class="table table-bordered table-sm">
+            <tr>
+                <th colspan="2" class="text-center">Observations</th>
+            </tr>
+            <tr>
+                <td>BP</td>
+                <td><span t-field="doc.bp"/></td>
+            </tr>
+            <tr>
+                <td>PR (Pulse Rate)</td>
+                <td><span t-field="doc.pulse_rate"/></td>
+            </tr>
+            <tr>
+                <td>Heart Rate</td>
+                <td><span t-field="doc.heart_rate"/></td>
+            </tr>
+            <tr>
+                <td>Respiratory Rate</td>
+                <td><span t-field="doc.respiratory_rate"/></td>
+            </tr>
+            <tr>
+                <td>Temperature</td>
+                <td><span t-field="doc.temperature"/></td>
+            </tr>
+            <tr>
+                <td>GRBS</td>
+                <td><span t-field="doc.grbs"/></td>
+            </tr>
+            <tr>
+                <td>Naadi</td>
+                <td><span t-field="doc.naadi"/></td>
+            </tr>
+        </table>
+
+        <h5 class="mt-3">Medication Details</h5>
+
+        <table class="table table-bordered table-sm">
+            <thead>
+                <tr>
+                    <th>Medicine</th>
+                    <th>Route</th>
+                    <th>Dose</th>
+                    <th>Time</th>
+                    <th>Duration (Days)</th>
+                    <th>Anupana</th>
+                    <th>Pathya-Apathya</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr t-foreach="doc.prescription_ids" t-as="line">
+                    <td>
+                        <span t-field="line.medicine_id"/>
+                    </td>
+                    <td>
+                        <span t-field="line.route"/>
+                    </td>
+                    <td>
+                        <span t-field="line.no_intakes"/>
+                    </td>
+                    <td>
+                        <span t-field="line.time"/>
+                    </td>
+                    <td>
+                        <span t-field="line.duration_days"/>
+                    </td>
+                    <td>
+                        <span t-field="line.anupanam"/>
+                    </td>
+                    <td>
+                        <span t-field="line.pathya_apathya"/>
+                    </td>
+                </tr>
+                <tr t-if="not doc.prescription_ids">
+                    <td colspan="7" class="text-center">
+                        No medication details entered.
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <table class="table table-borderless table-sm mt-4">
+            <tr>
+                <td colspan="2">
+                    <strong>Name and signature of the Consultant:</strong>
+                    <span t-field="doc.consultant_signoff_id"/>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <strong>Date:</strong>
+                    <span t-field="doc.signoff_date"/>
+                </td>
+                <td>
+                    <strong>Time:</strong>
+                    <span t-field="doc.signoff_time"/>
+                </td>
+            </tr>
+        </table>
+    </template>
+
+    <template id="report_ip_reassessment">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <t t-call="web.basic_layout">
+                    <div class="page">
+                        <t t-call="santhigiri_hms.report_ip_reassessment_slip"/>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+</odoo>
