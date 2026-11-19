@@ -133,5 +133,6 @@
               name="Prescriptions Master"
               parent="base_hospital_management.hospital_menu_configuration"
               action="action_hospital_prescription"
-              sequence="6"/>
+              sequence="6"
+              groups="base_hospital_management.base_hospital_management_group_manager,base_hospital_management.base_hospital_management_group_doctor,santhigiri_hms.group_rmo"/>
 </odoo>

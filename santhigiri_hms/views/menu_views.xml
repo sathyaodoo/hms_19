@@ -96,45 +96,50 @@
     <!-- Casualty -->
     <menuitem id="menu_casualty_root" name="Casualty"
               parent="base_hospital_management.hospital_menu_root"
-              sequence="25"/>
+              sequence="25"
+              groups="base_hospital_management.base_hospital_management_group_manager,base_hospital_management.base_hospital_management_group_receptionist,base_hospital_management.base_hospital_management_group_doctor,santhigiri_hms.group_rmo,santhigiri_hms.group_dms"/>
     <menuitem id="menu_casualty_registration" name="Casualty Registration"
               parent="menu_casualty_root"
               action="action_hospital_casualty_form"
-              sequence="10"/>
+              sequence="10"
+              groups="base_hospital_management.base_hospital_management_group_manager,base_hospital_management.base_hospital_management_group_receptionist,base_hospital_management.base_hospital_management_group_doctor,santhigiri_hms.group_rmo"/>
     <menuitem id="menu_casualty_duty_roster" name="Intern Duty Roster"
               parent="menu_casualty_root"
               action="action_casualty_duty_roster"
-              sequence="20"/>
+              sequence="20"
+              groups="base_hospital_management.base_hospital_management_group_manager,santhigiri_hms.group_dms,base_hospital_management.base_hospital_management_group_doctor"/>
 
     <!-- Daily Procedures -->
     <menuitem id="menu_procedure_root" name="Daily Procedures"
               parent="base_hospital_management.hospital_menu_root"
               sequence="30"
-              groups="base_hospital_management.base_hospital_management_group_manager,base_hospital_management.base_hospital_management_group_doctor,santhigiri_hms.group_rmo,santhigiri_hms.group_therapist,base_hospital_management.base_hospital_management_group_receptionist,base_hospital_management.base_hospital_management_group_nurse"/>
+              groups="base_hospital_management.base_hospital_management_group_manager,santhigiri_hms.group_rmo,santhigiri_hms.group_therapist,base_hospital_management.base_hospital_management_group_doctor,base_hospital_management.base_hospital_management_group_nurse"/>
     <menuitem id="menu_procedure_schedule" name="Procedure Schedule (Case Sheet)"
               parent="menu_procedure_root"
               action="action_hospital_procedure_schedule"
               sequence="5"
-              groups="base_hospital_management.base_hospital_management_group_manager,base_hospital_management.base_hospital_management_group_doctor,santhigiri_hms.group_rmo,santhigiri_hms.group_therapist,base_hospital_management.base_hospital_management_group_receptionist,base_hospital_management.base_hospital_management_group_nurse"/>
+              groups="base_hospital_management.base_hospital_management_group_manager,santhigiri_hms.group_rmo,santhigiri_hms.group_therapist,base_hospital_management.base_hospital_management_group_doctor,base_hospital_management.base_hospital_management_group_nurse"/>
     <menuitem id="menu_procedure_prescription" name="Procedure Prescriptions"
               parent="menu_procedure_root"
               action="action_procedure_prescription"
               sequence="10"
-              groups="base_hospital_management.base_hospital_management_group_manager,base_hospital_management.base_hospital_management_group_doctor,santhigiri_hms.group_rmo,santhigiri_hms.group_therapist,base_hospital_management.base_hospital_management_group_receptionist,base_hospital_management.base_hospital_management_group_nurse"/>
+              groups="base_hospital_management.base_hospital_management_group_manager,santhigiri_hms.group_rmo,base_hospital_management.base_hospital_management_group_doctor,base_hospital_management.base_hospital_management_group_nurse"/>
     <menuitem id="menu_daily_procedure_master" name="Procedure / Therapy Master"
               parent="menu_procedure_root"
               action="action_hospital_procedure_master"
               sequence="20"
-              groups="base_hospital_management.base_hospital_management_group_manager,base_hospital_management.base_hospital_management_group_doctor,santhigiri_hms.group_rmo,santhigiri_hms.group_therapist,base_hospital_management.base_hospital_management_group_receptionist,base_hospital_management.base_hospital_management_group_nurse"/>
+              groups="base_hospital_management.base_hospital_management_group_manager,santhigiri_hms.group_rmo,base_hospital_management.base_hospital_management_group_doctor"/>
 
     <!-- Food Management -->
     <menuitem id="menu_food_root" name="Food Management"
               parent="base_hospital_management.hospital_menu_root"
-              sequence="50"/>
+              sequence="50"
+              groups="base_hospital_management.base_hospital_management_group_manager,base_hospital_management.base_hospital_management_group_doctor,santhigiri_hms.group_rmo,santhigiri_hms.group_dietitian,santhigiri_hms.group_office_superintendent"/>
     <menuitem id="menu_diet_plan" name="Diet Plans"
               parent="menu_food_root"
               action="action_hospital_diet_plan"
-              sequence="10"/>
+              sequence="10"
+              groups="base_hospital_management.base_hospital_management_group_manager,base_hospital_management.base_hospital_management_group_doctor,santhigiri_hms.group_rmo,santhigiri_hms.group_dietitian"/>
 
     <!-- Medical Camps -->
     <menuitem id="menu_camp_root" name="Medical Camps"
@@ -222,19 +227,23 @@
     <menuitem id="menu_config_fee_master" name="Consultation Fee Master"
               parent="base_hospital_management.hospital_menu_configuration"
               action="action_fee_master"
-              sequence="10"/>
+              sequence="10"
+              groups="base_hospital_management.base_hospital_management_group_manager"/>
     <menuitem id="menu_config_registration_fee" name="Registration Fee"
               parent="base_hospital_management.hospital_menu_configuration"
               action="action_registration_fee"
-              sequence="11"/>
+              sequence="11"
+              groups="base_hospital_management.base_hospital_management_group_manager"/>
     <menuitem id="menu_config_allergy" name="Allergy Master"
               parent="base_hospital_management.hospital_menu_configuration"
               action="action_santhigiri_allergy"
-              sequence="20"/>
+              sequence="20"
+              groups="base_hospital_management.base_hospital_management_group_manager,santhigiri_hms.group_rmo,base_hospital_management.base_hospital_management_group_doctor"/>
     <menuitem id="menu_config_purchase_levels" name="Purchase Approval Levels"
               parent="base_hospital_management.hospital_menu_configuration"
               action="action_purchase_approval_level"
-              sequence="30"/>
+              sequence="30"
+              groups="base_hospital_management.base_hospital_management_group_manager,santhigiri_hms.group_dms"/>
 
 
     <!-- ══ Housekeeping Menu — for Housekeeping Staff ══════════════════════ -->
@@ -255,21 +264,21 @@
               name="Housekeeping"
               parent="base_hospital_management.hospital_menu_root"
               sequence="55"
-              groups="santhigiri_hms.group_housekeeping,santhigiri_hms.group_office_superintendent,base_hospital_management.base_hospital_management_group_manager"/>
+              groups="santhigiri_hms.group_housekeeping,base_hospital_management.base_hospital_management_group_receptionist,santhigiri_hms.group_office_superintendent,base_hospital_management.base_hospital_management_group_manager"/>
 
     <menuitem id="menu_housekeeping_cleaning_queue"
               name="Rooms to Clean"
               parent="menu_housekeeping_root"
               action="action_rooms_cleaning_queue"
               sequence="10"
-              groups="santhigiri_hms.group_housekeeping,santhigiri_hms.group_office_superintendent,base_hospital_management.base_hospital_management_group_manager"/>
+              groups="santhigiri_hms.group_housekeeping,base_hospital_management.base_hospital_management_group_receptionist,santhigiri_hms.group_office_superintendent,base_hospital_management.base_hospital_management_group_manager"/>
 
     <menuitem id="menu_housekeeping_all_rooms"
               name="All Rooms"
               parent="menu_housekeeping_root"
               action="action_all_rooms"
               sequence="20"
-              groups="santhigiri_hms.group_office_superintendent,base_hospital_management.base_hospital_management_group_manager"/>
+              groups="santhigiri_hms.group_housekeeping,base_hospital_management.base_hospital_management_group_receptionist,santhigiri_hms.group_office_superintendent,base_hospital_management.base_hospital_management_group_manager"/>
 
 
     <!-- ══ Pharmacy Orders — for Pharmacist to see pending IP/OP orders ════════ -->
@@ -351,6 +360,204 @@
                 </page>
             </notebook>
         </field>
+    </record>
+
+    <!-- ══ BASE HOSPITAL MANAGEMENT MENU OVERRIDES (MODULE-WISE ALLOCATION) ══ -->
+
+    <!-- Top-Level Configuration Menu -->
+    <record id="base_hospital_management.hospital_menu_configuration" model="ir.ui.menu">
+        <field name="group_ids" eval="[(6, 0, [
+            ref('base_hospital_management.base_hospital_management_group_manager'),
+            ref('base_hospital_management.base_hospital_management_group_receptionist'),
+            ref('base_hospital_management.base_hospital_management_group_doctor'),
+            ref('santhigiri_hms.group_rmo'),
+            ref('base_hospital_management.base_hospital_management_group_pharmacist'),
+            ref('santhigiri_hms.group_dms')
+        ])]"/>
+    </record>
+
+    <!-- Top-Level Infrastructure Menu -->
+    <record id="base_hospital_management.hospital_menu_infrastructure" model="ir.ui.menu">
+        <field name="group_ids" eval="[(6, 0, [
+            ref('base_hospital_management.base_hospital_management_group_manager'),
+            ref('base_hospital_management.base_hospital_management_group_receptionist'),
+            ref('santhigiri_hms.group_housekeeping'),
+            ref('santhigiri_hms.group_office_superintendent'),
+            ref('base_hospital_management.base_hospital_management_group_pharmacist'),
+            ref('base_hospital_management.base_hospital_management_group_nurse'),
+            ref('base_hospital_management.base_hospital_management_group_doctor'),
+            ref('santhigiri_hms.group_rmo')
+        ])]"/>
+    </record>
+
+    <!-- Top-Level Appointments Menu -->
+    <record id="base_hospital_management.hospital_menu_appointment" model="ir.ui.menu">
+        <field name="group_ids" eval="[(6, 0, [
+            ref('base_hospital_management.base_hospital_management_group_receptionist'),
+            ref('base_hospital_management.base_hospital_management_group_doctor'),
+            ref('santhigiri_hms.group_rmo'),
+            ref('base_hospital_management.base_hospital_management_group_nurse'),
+            ref('base_hospital_management.base_hospital_management_group_manager')
+        ])]"/>
+    </record>
+
+    <!-- Top-Level Registration / Reception Menu -->
+    <record id="base_hospital_management.res_partner_menu" model="ir.ui.menu">
+        <field name="group_ids" eval="[(6, 0, [
+            ref('base_hospital_management.base_hospital_management_group_receptionist'),
+            ref('base_hospital_management.base_hospital_management_group_doctor'),
+            ref('santhigiri_hms.group_rmo'),
+            ref('base_hospital_management.base_hospital_management_group_manager')
+        ])]"/>
+    </record>
+
+    <!-- Top-Level Laboratory Menu -->
+    <record id="base_hospital_management.hospital_menu_laboratory" model="ir.ui.menu">
+        <field name="group_ids" eval="[(6, 0, [
+            ref('base_hospital_management.base_hospital_management_group_lab_assistant'),
+            ref('santhigiri_hms.group_xray_technician'),
+            ref('base_hospital_management.base_hospital_management_group_doctor'),
+            ref('santhigiri_hms.group_rmo'),
+            ref('base_hospital_management.base_hospital_management_group_manager')
+        ])]"/>
+    </record>
+
+    <!-- Configuration Submenus -->
+    <!-- Staff: Deepa, Dr.Anju, Dr.Shibil (Receptionist, Doctor, Manager) -->
+    <record id="base_hospital_management.hr_employee_menu" model="ir.ui.menu">
+        <field name="group_ids" eval="[(6, 0, [
+            ref('base_hospital_management.base_hospital_management_group_manager'),
+            ref('base_hospital_management.base_hospital_management_group_receptionist'),
+            ref('base_hospital_management.base_hospital_management_group_doctor')
+        ])]"/>
+    </record>
+
+    <!-- Medicine: Pharmacy staff (Pharmacist, Manager) -->
+    <record id="base_hospital_management.product_template_menu_medicine" model="ir.ui.menu">
+        <field name="group_ids" eval="[(6, 0, [
+            ref('base_hospital_management.base_hospital_management_group_manager'),
+            ref('base_hospital_management.base_hospital_management_group_pharmacist')
+        ])]"/>
+    </record>
+
+    <!-- Medicine Brand: Pharmacy staff (Pharmacist, Manager) -->
+    <record id="base_hospital_management.medicine_brand_menu" model="ir.ui.menu">
+        <field name="group_ids" eval="[(6, 0, [
+            ref('base_hospital_management.base_hospital_management_group_manager'),
+            ref('base_hospital_management.base_hospital_management_group_pharmacist')
+        ])]"/>
+    </record>
+
+    <!-- Vaccine: Pharmacist, Doctor, Manager -->
+    <record id="base_hospital_management.product_template_menu_vaccine" model="ir.ui.menu">
+        <field name="group_ids" eval="[(6, 0, [
+            ref('base_hospital_management.base_hospital_management_group_manager'),
+            ref('base_hospital_management.base_hospital_management_group_pharmacist'),
+            ref('base_hospital_management.base_hospital_management_group_doctor')
+        ])]"/>
+    </record>
+
+    <!-- Insurance: RMO, Deepa, Radhakrishnan (RMO, Receptionist, Manager) -->
+    <record id="base_hospital_management.hospital_insurance_menu" model="ir.ui.menu">
+        <field name="group_ids" eval="[(6, 0, [
+            ref('base_hospital_management.base_hospital_management_group_manager'),
+            ref('santhigiri_hms.group_rmo'),
+            ref('base_hospital_management.base_hospital_management_group_receptionist')
+        ])]"/>
+    </record>
+
+    <!-- Contra Indications: RMO, Doctors/Consultants (RMO, Doctor, Manager) -->
+    <record id="base_hospital_management.contra_indication_menu" model="ir.ui.menu">
+        <field name="group_ids" eval="[(6, 0, [
+            ref('base_hospital_management.base_hospital_management_group_manager'),
+            ref('santhigiri_hms.group_rmo'),
+            ref('base_hospital_management.base_hospital_management_group_doctor')
+        ])]"/>
+    </record>
+
+    <!-- Degree: Reception, Deepa, Praseetha (Receptionist, Manager) -->
+    <record id="base_hospital_management.hospital_degree_menu" model="ir.ui.menu">
+        <field name="group_ids" eval="[(6, 0, [
+            ref('base_hospital_management.base_hospital_management_group_manager'),
+            ref('base_hospital_management.base_hospital_management_group_receptionist')
+        ])]"/>
+    </record>
+
+    <!-- Specialization: RMO (RMO, Doctor, Manager) -->
+    <record id="base_hospital_management.doctor_specialization_menu" model="ir.ui.menu">
+        <field name="group_ids" eval="[(6, 0, [
+            ref('base_hospital_management.base_hospital_management_group_manager'),
+            ref('santhigiri_hms.group_rmo'),
+            ref('base_hospital_management.base_hospital_management_group_doctor')
+        ])]"/>
+    </record>
+
+    <!-- Facilities: Deepa, Praseetha (Receptionist, Manager) -->
+    <record id="base_hospital_management.room_facility_menu" model="ir.ui.menu">
+        <field name="group_ids" eval="[(6, 0, [
+            ref('base_hospital_management.base_hospital_management_group_manager'),
+            ref('base_hospital_management.base_hospital_management_group_receptionist')
+        ])]"/>
+    </record>
+
+    <!-- Infrastructure Submenus -->
+    <!-- Pharmacy: Suresh, Ananya, Lalitha, Kokila (Pharmacist, Manager) -->
+    <record id="base_hospital_management.hospital_pharmacy_menu" model="ir.ui.menu">
+        <field name="group_ids" eval="[(6, 0, [
+            ref('base_hospital_management.base_hospital_management_group_manager'),
+            ref('base_hospital_management.base_hospital_management_group_pharmacist')
+        ])]"/>
+    </record>
+
+    <!-- Room, Ward, Bed: Ajitha kumari, Sudha, Praseetha, Deepa, Sheeba (Receptionist, Housekeeping, Manager) -->
+    <record id="base_hospital_management.patient_room_menu" model="ir.ui.menu">
+        <field name="group_ids" eval="[(6, 0, [
+            ref('base_hospital_management.base_hospital_management_group_manager'),
+            ref('base_hospital_management.base_hospital_management_group_receptionist'),
+            ref('santhigiri_hms.group_housekeeping'),
+            ref('santhigiri_hms.group_office_superintendent'),
+            ref('base_hospital_management.base_hospital_management_group_nurse'),
+            ref('base_hospital_management.base_hospital_management_group_doctor')
+        ])]"/>
+    </record>
+
+    <record id="base_hospital_management.hospital_ward_menu" model="ir.ui.menu">
+        <field name="group_ids" eval="[(6, 0, [
+            ref('base_hospital_management.base_hospital_management_group_manager'),
+            ref('base_hospital_management.base_hospital_management_group_receptionist'),
+            ref('santhigiri_hms.group_housekeeping'),
+            ref('santhigiri_hms.group_office_superintendent'),
+            ref('base_hospital_management.base_hospital_management_group_nurse'),
+            ref('base_hospital_management.base_hospital_management_group_doctor')
+        ])]"/>
+    </record>
+
+    <record id="base_hospital_management.hospital_bed_menu" model="ir.ui.menu">
+        <field name="group_ids" eval="[(6, 0, [
+            ref('base_hospital_management.base_hospital_management_group_manager'),
+            ref('base_hospital_management.base_hospital_management_group_receptionist'),
+            ref('santhigiri_hms.group_housekeeping'),
+            ref('santhigiri_hms.group_office_superintendent'),
+            ref('base_hospital_management.base_hospital_management_group_nurse'),
+            ref('base_hospital_management.base_hospital_management_group_doctor')
+        ])]"/>
+    </record>
+
+    <record id="base_hospital_management.hospital_building_menu" model="ir.ui.menu">
+        <field name="group_ids" eval="[(6, 0, [
+            ref('base_hospital_management.base_hospital_management_group_manager'),
+            ref('base_hospital_management.base_hospital_management_group_receptionist'),
+            ref('santhigiri_hms.group_housekeeping'),
+            ref('santhigiri_hms.group_office_superintendent')
+        ])]"/>
+    </record>
+
+    <!-- Lab Submenu under Infrastructure -->
+    <record id="base_hospital_management.hospital_laboratory_menu" model="ir.ui.menu">
+        <field name="group_ids" eval="[(6, 0, [
+            ref('base_hospital_management.base_hospital_management_group_manager'),
+            ref('base_hospital_management.base_hospital_management_group_lab_assistant')
+        ])]"/>
     </record>
 
 </odoo>
