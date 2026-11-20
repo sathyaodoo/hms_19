@@ -80,7 +80,7 @@ class HospitalOutpatient(models.Model):
     department_id = fields.Many2one(
         'hospital.department',
         string='Department Allotted',
-        required=True,
+        ondelete='set null',
         index=True,
         tracking=True,
         help='Medical department allotted from registration',

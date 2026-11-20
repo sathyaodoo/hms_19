@@ -78,6 +78,7 @@
 
             <xpath expr="//field[@name='doctor_id']" position="before">
                 <field name="department_id" options="{'no_create': True, 'no_edit': True}"
+                       required="1"
                        readonly="state in ('invoice','cancel')"/>
                 <field name="cop_no"/>
                 <field name="dop_no"/>

@@ -65,7 +65,7 @@ class HospitalPatientScreening(models.Model):
                              help='Screening counter in accordance with patient flow')
 
     # ── (d) Departmental Routing & Triage ─────────────────────────────────────
-    department_id = fields.Many2one('hospital.department', string='Recommended Department (OPD)', required=True, tracking=True,
+    department_id = fields.Many2one('hospital.department', string='Recommended Department (OPD)', ondelete='set null', tracking=True,
                                     help='Ayurveda OPD department decided as per screening criteria')
     specialty_opd = fields.Char(string='Specialty OPD', help='Specialty Out Patient Department if any')
     doctor_id = fields.Many2one('hr.employee', string='Recommended Doctor', domain=[('doctor', '=', True)])
