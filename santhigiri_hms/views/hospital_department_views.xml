@@ -42,8 +42,8 @@
                         </group>
                     </group>
                     <notebook>
-                        <page string="Doctors / Practitioners" name="doctors">
-                            <field name="doctor_ids" readonly="1">
+                        <page string="Department Staff / Members" name="members">
+                            <field name="member_ids" widget="many2many">
                                 <list>
                                     <field name="name"/>
                                     <field name="work_phone"/>

@@ -415,11 +415,6 @@ class DoctorAllocationPortal(models.Model):
     forever. Only non-cancelled OPs consume a slot now."""
     _inherit = 'doctor.allocation'
 
-    @api.onchange('doctor_id')
-    def _onchange_doctor_set_hospital_dept(self):
-        if self.doctor_id and self.doctor_id.hospital_department_id:
-            self.department_id = self.doctor_id.hospital_department_id
-
     @api.depends('op_ids', 'op_ids.state')
     def _compute_patient_count(self):
         for rec in self:

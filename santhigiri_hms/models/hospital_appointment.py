@@ -116,8 +116,10 @@ class HospitalAppointment(models.Model):
 
     @api.onchange('doctor_id')
     def _onchange_doctor_id(self):
-        if self.doctor_id and self.doctor_id.hospital_department_id and not self.department_id:
-            self.department_id = self.doctor_id.hospital_department_id
+        if self.doctor_id and not self.department_id:
+            dept = self.env['hospital.department'].search([('member_ids', 'in', self.doctor_id.id)], limit=1)
+            if dept:
+                self.department_id = dept
 
     @api.onchange('is_confirmed')
     def _onchange_is_confirmed(self):
@@ -217,11 +219,14 @@ class HospitalAppointment(models.Model):
         )
         full_reason = f'{reason_label}' + (f': {self.notes}' if self.notes else '')
 
+        doctor_dept = (
+            self.env['hospital.department'].search([('member_ids', 'in', self.doctor_id.id)], limit=1).id
+            if self.doctor_id else False
+        )
         fallback_dept = (
             self.department_id.id if self.department_id
             else (allocation.department_id.id if allocation and allocation.department_id
-                  else (self.doctor_id.hospital_department_id.id if self.doctor_id and self.doctor_id.hospital_department_id
-                        else self.env['hospital.department'].search([], limit=1).id))
+                  else (doctor_dept or self.env['hospital.department'].search([], limit=1).id))
         )
 
         op_vals = {

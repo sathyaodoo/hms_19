@@ -29,17 +29,13 @@ class HospitalDepartment(models.Model):
         help='Head of Department / Senior Consultant'
     )
     description = fields.Text(string='Description / Specialities')
-    doctor_ids = fields.One2many(
-        'hr.employee',
-        'hospital_department_id',
-        string='Doctors / Practitioners'
-    )
     member_ids = fields.Many2many(
         'hr.employee',
+        'hospital_dept_member_rel',
+        'dept_id',
+        'emp_id',
         string='Staff / Members',
-        compute='_compute_member_ids',
-        store=True,
-        help='Employees/Doctors belonging to this department'
+        help='Doctors or hospital staff assigned to this medical department'
     )
 
     @api.constrains('code', 'company_id')
@@ -51,8 +47,3 @@ class HospitalDepartment(models.Model):
                     domain.append(('company_id', '=', rec.company_id.id))
                 if self.search_count(domain):
                     raise ValidationError('Department code must be unique per hospital company!')
-
-    @api.depends('doctor_ids')
-    def _compute_member_ids(self):
-        for rec in self:
-            rec.member_ids = rec.doctor_ids

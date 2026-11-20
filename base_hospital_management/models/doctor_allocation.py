@@ -38,8 +38,10 @@ class DoctorAllocation(models.Model):
 
     @api.onchange('doctor_id')
     def _onchange_doctor_set_dept(self):
-        if self.doctor_id and self.doctor_id.hospital_department_id:
-            self.department_id = self.doctor_id.hospital_department_id
+        if self.doctor_id and not self.department_id:
+            dept = self.env['hospital.department'].search([('member_ids', 'in', self.doctor_id.id)], limit=1)
+            if dept:
+                self.department_id = dept
     op_ids = fields.One2many('hospital.outpatient',
                              'doctor_id',
                              string='Booking',

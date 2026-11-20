@@ -17,11 +17,6 @@ class HrEmployee(models.Model):
             self.doctor = True
         # Note: we don't auto-unset doctor=False to avoid accidental removal
 
-    hospital_department_id = fields.Many2one(
-        'hospital.department',
-        string='Hospital Department',
-        help='Clinical / Medical department this doctor or practitioner belongs to',
-    )
     is_therapist = fields.Boolean(
         string='Is Therapist',
         help='Mark this employee as a therapy/Panchakarma therapist',

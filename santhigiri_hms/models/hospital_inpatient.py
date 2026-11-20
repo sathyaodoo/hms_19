@@ -65,11 +65,22 @@ class HospitalInpatient(models.Model):
     )
     department_id = fields.Many2one(
         'hospital.department',
-        related='attending_doctor_id.hospital_department_id',
-        store=True,
-        readonly=True,
         string='Department',
+        compute='_compute_department_id',
+        store=True,
+        readonly=False,
     )
+
+    @api.depends('attending_doctor_id', 'source_op_id.department_id')
+    def _compute_department_id(self):
+        for rec in self:
+            if rec.source_op_id and rec.source_op_id.department_id:
+                rec.department_id = rec.source_op_id.department_id
+            elif rec.attending_doctor_id:
+                dept = self.env['hospital.department'].search([('member_ids', 'in', rec.attending_doctor_id.id)], limit=1)
+                rec.department_id = dept or False
+            elif not rec.department_id:
+                rec.department_id = False
 
     # ── Initial Assessment Link ───────────────────────────────────────────────
     assessment_ids = fields.One2many(
