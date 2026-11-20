@@ -201,11 +201,4 @@
         <field name="view_mode">list,form</field>
     </record>
 
-    <!-- Menu -->
-    <menuitem id="menu_hospital_ip_assessment"
-              name="IP Initial Assessments"
-              parent="base_hospital_management.hospital_menu_root"
-              action="action_hospital_ip_assessment"
-              sequence="85"/>
-
 </odoo>
