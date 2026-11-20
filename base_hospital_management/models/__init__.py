@@ -30,6 +30,7 @@ from . import doctor_specialization
 from . import hospital_bed
 from . import hospital_building
 from . import hospital_degree
+from . import hospital_department
 from . import hospital_family
 from . import hospital_inpatient
 from . import hospital_insurance

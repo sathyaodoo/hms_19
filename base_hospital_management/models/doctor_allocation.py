@@ -33,9 +33,13 @@ class DoctorAllocation(models.Model):
     doctor_id = fields.Many2one('hr.employee', string="Doctor",
                                 help='Name of the doctor',
                                 domain=[('job_id.name', '=', 'Doctor')])
-    department_id = fields.Many2one(string='Department',
-                                    help='Department of the doctor',
-                                    related='doctor_id.department_id')
+    department_id = fields.Many2one('hospital.department', string='Department',
+                                    help='Hospital department of the doctor')
+
+    @api.onchange('doctor_id')
+    def _onchange_doctor_set_dept(self):
+        if self.doctor_id and self.doctor_id.hospital_department_id:
+            self.department_id = self.doctor_id.hospital_department_id
     op_ids = fields.One2many('hospital.outpatient',
                              'doctor_id',
                              string='Booking',

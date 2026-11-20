@@ -54,7 +54,7 @@ class HospitalOPAssessment(models.Model):
         readonly=False,
     )
     department_id = fields.Many2one(
-        'hr.department',
+        'hospital.department',
         string='Department',
         compute='_compute_patient_info',
         store=True,
@@ -203,7 +203,7 @@ class HospitalOPAssessment(models.Model):
                 ip = rec.inpatient_id
                 rec.patient_id = ip.patient_id
                 rec.doctor_id = ip.attending_doctor_id or ip.operating_doctor_id
-                rec.department_id = getattr(ip, 'department_id', False) or (ip.attending_doctor_id.department_id if ip.attending_doctor_id else False)
+                rec.department_id = getattr(ip, 'department_id', False) or (ip.attending_doctor_id.hospital_department_id if ip.attending_doctor_id else False)
                 rec.uhid_no = ip.patient_id.uhid_no or False
                 rec.cop_no = getattr(ip, 'cop_no', False) or False
                 rec.dop_no = getattr(ip, 'dop_no', False) or False
@@ -223,7 +223,7 @@ class HospitalOPAssessment(models.Model):
                 elif op.doctor_id and getattr(op.doctor_id, '_name', '') == 'hr.employee':
                     doc = op.doctor_id
                 rec.doctor_id = doc
-                rec.department_id = op.department_id or (doc.department_id if doc else False)
+                rec.department_id = op.department_id or (doc.hospital_department_id if doc else False)
                 rec.uhid_no = op.uhid_no
                 rec.cop_no = op.cop_no
                 rec.dop_no = op.dop_no

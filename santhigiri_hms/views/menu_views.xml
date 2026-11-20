@@ -224,6 +224,11 @@
               sequence="20"
               groups="base_hospital_management.base_hospital_management_group_manager,base_hospital_management.base_hospital_management_group_doctor,base_hospital_management.base_hospital_management_group_receptionist,santhigiri_hms.group_rmo"/>
     <!-- Configuration -->
+    <menuitem id="menu_hospital_department" name="Department"
+              parent="base_hospital_management.hospital_menu_configuration"
+              action="action_hospital_department"
+              sequence="2"
+              groups="base_hospital_management.base_hospital_management_group_manager,base_hospital_management.base_hospital_management_group_doctor,base_hospital_management.base_hospital_management_group_receptionist,santhigiri_hms.group_rmo"/>
     <menuitem id="menu_config_fee_master" name="Consultation Fee Master"
               parent="base_hospital_management.hospital_menu_configuration"
               action="action_fee_master"

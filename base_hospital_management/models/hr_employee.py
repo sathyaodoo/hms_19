@@ -55,6 +55,9 @@ class HrEmployee(models.Model):
                                           string="Specialization",
                                           help="Doctors specialization for"
                                                " an area")
+    hospital_department_id = fields.Many2one('hospital.department',
+                                             string="Hospital Department",
+                                             help="Hospital Medical Department of the staff/doctor")
 
     def action_create_user(self):
         """Updating employee field of res user to true"""

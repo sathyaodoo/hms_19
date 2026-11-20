@@ -62,7 +62,7 @@ class HospitalIPAssessment(models.Model):
     )
 
     department_id = fields.Many2one(
-        'hr.department',
+        'hospital.department',
         string='Department',
     )
 

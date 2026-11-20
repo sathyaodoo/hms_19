@@ -13,7 +13,7 @@ class HospitalCamp(models.Model):
     location = fields.Char(string='Location / Venue')
     speciality = fields.Char(string='Speciality',
                               help='e.g. General Medicine, Ayurveda, Ophthalmology, Orthopaedics')
-    organiser_dept_id = fields.Many2one('hr.department', string='Organising Department')
+    organiser_dept_id = fields.Many2one('hospital.department', string='Organising Department')
     sponsor = fields.Char(string='Sponsoring Organisation')
 
     discount_type = fields.Selection([

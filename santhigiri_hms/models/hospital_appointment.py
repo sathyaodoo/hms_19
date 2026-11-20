@@ -43,7 +43,7 @@ class HospitalAppointment(models.Model):
         string='Email',
     )
     department_id = fields.Many2one(
-        'hr.department',
+        'hospital.department',
         string='Department Preferred',
         required=False,
         tracking=True,
@@ -116,8 +116,8 @@ class HospitalAppointment(models.Model):
 
     @api.onchange('doctor_id')
     def _onchange_doctor_id(self):
-        if self.doctor_id and self.doctor_id.department_id and not self.department_id:
-            self.department_id = self.doctor_id.department_id
+        if self.doctor_id and self.doctor_id.hospital_department_id and not self.department_id:
+            self.department_id = self.doctor_id.hospital_department_id
 
     @api.onchange('is_confirmed')
     def _onchange_is_confirmed(self):
@@ -199,7 +199,7 @@ class HospitalAppointment(models.Model):
             ], limit=1)
         if not allocation and self.department_id:
             allocation = self.env['doctor.allocation'].search([
-                ('doctor_id.department_id', '=', self.department_id.id),
+                ('department_id', '=', self.department_id.id),
                 ('date', '=', today),
                 ('state', '=', 'confirm'),
             ], limit=1)
@@ -220,8 +220,8 @@ class HospitalAppointment(models.Model):
         fallback_dept = (
             self.department_id.id if self.department_id
             else (allocation.department_id.id if allocation and allocation.department_id
-                  else (self.doctor_id.department_id.id if self.doctor_id and self.doctor_id.department_id
-                        else self.env['hr.department'].search([], limit=1).id))
+                  else (self.doctor_id.hospital_department_id.id if self.doctor_id and self.doctor_id.hospital_department_id
+                        else self.env['hospital.department'].search([], limit=1).id))
         )
 
         op_vals = {

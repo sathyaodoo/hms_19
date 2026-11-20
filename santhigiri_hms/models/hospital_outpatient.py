@@ -78,7 +78,7 @@ class HospitalOutpatient(models.Model):
 
     # ── Department & Doctor ───────────────────────────────────────────────────
     department_id = fields.Many2one(
-        'hr.department',
+        'hospital.department',
         string='Department Allotted',
         required=True,
         index=True,
@@ -370,7 +370,7 @@ class HospitalOutpatient(models.Model):
     def _onchange_department_id_update_dop(self):
         """Update DOP number to match selected department code if in draft or new."""
         if self.department_id and (not self.state or self.state == 'draft'):
-            code = self._get_department_code(self.department_id.name)
+            code = (self.department_id.code or '').strip().upper() or self._get_department_code(self.department_id.name)
             curr_code = self.dop_no.split('/')[-1] if self.dop_no and '/' in self.dop_no else ''
             if curr_code != code:
                 self.dop_no = self._next_dop_number(code)
@@ -492,9 +492,9 @@ class HospitalOutpatient(models.Model):
             if not vals.get('dop_no'):
                 dept_code = 'GEN'
                 if vals.get('department_id'):
-                    dept = self.env['hr.department'].browse(vals['department_id'])
-                    if dept.exists() and dept.name:
-                        dept_code = self._get_department_code(dept.name)
+                    dept = self.env['hospital.department'].browse(vals['department_id'])
+                    if dept.exists():
+                        dept_code = (dept.code or '').strip().upper() or self._get_department_code(dept.name)
                 vals['dop_no'] = self._next_dop_number(dept_code)
 
             # 4. Registration Date & Time default
@@ -762,9 +762,9 @@ class HospitalOutpatient(models.Model):
     # ── Auto-log intern observation ────────────────────────────────────────────
     def write(self, vals):
         if 'department_id' in vals and vals['department_id']:
-            dept = self.env['hr.department'].browse(vals['department_id'])
-            if dept.exists() and dept.name:
-                new_code = self._get_department_code(dept.name)
+            dept = self.env['hospital.department'].browse(vals['department_id'])
+            if dept.exists():
+                new_code = (dept.code or '').strip().upper() or self._get_department_code(dept.name)
                 for rec in self:
                     if not rec.dop_no or rec.dop_no.endswith('/GEN'):
                         vals['dop_no'] = self._next_dop_number(new_code)

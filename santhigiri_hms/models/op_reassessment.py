@@ -55,7 +55,7 @@ class HospitalOPReassessment(models.Model):
         readonly=True,
     )
     department_id = fields.Many2one(
-        'hr.department',
+        'hospital.department',
         string='Department',
         related='outpatient_id.department_id',
         store=True,

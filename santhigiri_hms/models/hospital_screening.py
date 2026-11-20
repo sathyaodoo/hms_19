@@ -65,7 +65,7 @@ class HospitalPatientScreening(models.Model):
                              help='Screening counter in accordance with patient flow')
 
     # ── (d) Departmental Routing & Triage ─────────────────────────────────────
-    department_id = fields.Many2one('hr.department', string='Recommended Department (OPD)', required=True, tracking=True,
+    department_id = fields.Many2one('hospital.department', string='Recommended Department (OPD)', required=True, tracking=True,
                                     help='Ayurveda OPD department decided as per screening criteria')
     specialty_opd = fields.Char(string='Specialty OPD', help='Specialty Out Patient Department if any')
     doctor_id = fields.Many2one('hr.employee', string='Recommended Doctor', domain=[('doctor', '=', True)])
@@ -249,7 +249,7 @@ class HospitalPatientScreening(models.Model):
             ], limit=1)
         if not allocation and self.department_id:
             allocation = self.env['doctor.allocation'].search([
-                ('doctor_id.department_id', '=', self.department_id.id),
+                ('department_id', '=', self.department_id.id),
                 ('date', '=', today),
                 ('state', '=', 'confirm'),
             ], limit=1)
@@ -265,7 +265,7 @@ class HospitalPatientScreening(models.Model):
             allocation.department_id.id if allocation and allocation.department_id else False
         )
         if not dept_id:
-            dept_id = self.env['hr.department'].search([], limit=1).id
+            dept_id = self.env['hospital.department'].search([], limit=1).id
 
         # 3. Build OP Complaints Table lines
         complaint_lines = []

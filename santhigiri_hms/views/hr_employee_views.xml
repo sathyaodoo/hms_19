@@ -10,6 +10,7 @@
             <xpath expr="//field[@name='consultancy_type']" position="after">
                 <separator string="Santhigiri Roles"/>
                 <field name="doctor" string="Is Doctor (Prescribed By dropdown)"/>
+                <field name="hospital_department_id" options="{'no_create': True}"/>
                 <field name="is_rmo"/>
                 <field name="is_therapist"/>
                 <field name="is_dietitian"/>

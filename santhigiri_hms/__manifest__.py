@@ -27,10 +27,12 @@
         # Sequences & cron
         'data/ir_sequence_data.xml',
         'data/hr_department_data.xml',
+        'data/hospital_department_data.xml',
         'data/website_data.xml',
         'data/ir_cron_data.xml',
         'data/patient_portal_data.xml',
         # Views
+        'views/hospital_department_views.xml',
         'views/patient_room_views.xml',
         'views/hospital_bed_views.xml',
         'views/product_template_views.xml',

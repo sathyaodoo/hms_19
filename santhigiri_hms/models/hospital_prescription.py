@@ -28,7 +28,7 @@ class HospitalPrescription(models.Model):
         tracking=True,
     )
     department_id = fields.Many2one(
-        'hr.department',
+        'hospital.department',
         string='Department',
     )
     outpatient_id = fields.Many2one(

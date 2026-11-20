@@ -64,8 +64,8 @@ class HospitalInpatient(models.Model):
         help='OP Consultation from which this patient was admitted',
     )
     department_id = fields.Many2one(
-        'hr.department',
-        related='attending_doctor_id.department_id',
+        'hospital.department',
+        related='attending_doctor_id.hospital_department_id',
         store=True,
         readonly=True,
         string='Department',

@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="dept_kayachikitsa" model="hospital.department">
+            <field name="name">Kayachikitsa</field>
+            <field name="code">KC</field>
+            <field name="sequence">1</field>
+            <field name="description">Ayurvedic General Medicine</field>
+        </record>
+        <record id="dept_panchakarma" model="hospital.department">
+            <field name="name">Panchakarma</field>
+            <field name="code">PK</field>
+            <field name="sequence">2</field>
+            <field name="description">Purificatory Therapies &amp; Detoxification</field>
+        </record>
+        <record id="dept_prasootitantra" model="hospital.department">
+            <field name="name">Prasootitantra &amp; Striroga</field>
+            <field name="code">PR</field>
+            <field name="sequence">3</field>
+            <field name="description">Obstetrics &amp; Gynaecology</field>
+        </record>
+        <record id="dept_kaumarbhrithya" model="hospital.department">
+            <field name="name">Kaumarbhrithya (Balroga)</field>
+            <field name="code">KB</field>
+            <field name="sequence">4</field>
+            <field name="description">Ayurvedic Paediatrics</field>
+        </record>
+        <record id="dept_salyatantra" model="hospital.department">
+            <field name="name">Salyatantra (Shalya Tantra)</field>
+            <field name="code">ST</field>
+            <field name="sequence">5</field>
+            <field name="description">General Surgery &amp; Anorectal Clinic (Ksharasutra)</field>
+        </record>
+        <record id="dept_salakyatantra" model="hospital.department">
+            <field name="name">Salakyatantra (Shalakya Tantra)</field>
+            <field name="code">SL</field>
+            <field name="sequence">6</field>
+            <field name="description">ENT, Ophthalmology &amp; Dentistry</field>
+        </record>
+        <record id="dept_swasthyarakshana" model="hospital.department">
+            <field name="name">Swasthya Rakshana &amp; Yoga</field>
+            <field name="code">SW</field>
+            <field name="sequence">7</field>
+            <field name="description">Preventive Medicine, Lifestyle &amp; Yoga Therapy</field>
+        </record>
+        <record id="dept_casualty" model="hospital.department">
+            <field name="name">Casualty</field>
+            <field name="code">CAS</field>
+            <field name="sequence">8</field>
+            <field name="description">Emergency &amp; Atyayika Unit</field>
+        </record>
+        <record id="dept_agadantantra" model="hospital.department">
+            <field name="name">Agada Tantra</field>
+            <field name="code">AG</field>
+            <field name="sequence">9</field>
+            <field name="description">Toxicology &amp; Forensic Medicine</field>
+        </record>
+    </data>
+</odoo>
