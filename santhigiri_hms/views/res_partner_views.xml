@@ -132,45 +132,6 @@
                 </page>
             </xpath>
 
-			<!-- 7. Onboarding: Previous Medical History / Previous
-                 Prescriptions — added as a 4th sub-tab inside the
-                 EXISTING "Medical" tab (name="medicine"), alongside
-                 the system-generated Medicine/Lab Tests/Vaccine
-                 sub-tabs, since those are create="0" and cannot be
-                 used to log a patient's pre-existing history. -->
-			<xpath expr="//field[@name='notes']/parent::page" position="before">
-				<page string="Previous History"
-					name="previous_history">
-					<separator string="Previous Medical History" />
-					<field name="medical_history_ids">
-						<list editable="bottom">
-							<field name="date" />
-							<field name="condition" />
-							<field name="is_chronic" />
-							<field name="treated_at" />
-							<field name="treating_doctor" />
-							<field name="description" />
-							<field name="attachment" widget="binary"
-								filename="attachment_name" />
-							<field name="attachment_name" invisible="1" />
-						</list>
-					</field>
-					<separator string="Previous Prescriptions" />
-					<field name="previous_prescription_ids">
-						<list editable="bottom">
-							<field name="date" />
-							<field name="medicine_name" />
-							<field name="medicine_id" />
-							<field name="dosage" />
-							<field name="frequency" />
-							<field name="duration" />
-							<field name="prescribed_by" />
-							<field name="note" />
-						</list>
-					</field>
-				</page>
-			</xpath>
-
 			<!-- 8. Registration fee: header button, type="object" —
                  calls action_generate_registration_invoice directly
                  on res.partner (see res_partner.py). It does NOT open
