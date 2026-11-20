@@ -34,6 +34,7 @@ class DoctorAllocation(models.Model):
                                 help='Name of the doctor',
                                 domain=[('job_id.name', '=', 'Doctor')])
     department_id = fields.Many2one('hospital.department', string='Department',
+                                    ondelete='set null',
                                     help='Hospital department of the doctor')
 
     @api.onchange('doctor_id')

@@ -69,6 +69,7 @@ class HospitalInpatient(models.Model):
         compute='_compute_department_id',
         store=True,
         readonly=False,
+        ondelete='set null',
     )
 
     @api.depends('attending_doctor_id', 'source_op_id.department_id')

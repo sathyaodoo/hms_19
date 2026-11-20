@@ -64,6 +64,7 @@ class HospitalIPAssessment(models.Model):
     department_id = fields.Many2one(
         'hospital.department',
         string='Department',
+        ondelete='set null',
     )
 
     assessment_datetime = fields.Datetime(

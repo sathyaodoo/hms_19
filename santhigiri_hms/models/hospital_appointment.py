@@ -46,6 +46,7 @@ class HospitalAppointment(models.Model):
         'hospital.department',
         string='Department Preferred',
         required=False,
+        ondelete='set null',
         tracking=True,
         help='Preferred medical department',
     )

@@ -25,5 +25,6 @@ class HospitalFeeMaster(models.Model):
     amount = fields.Monetary(string='Consultation Fee', required=True)
     currency_id = fields.Many2one('res.currency', default=lambda s: s.env.company.currency_id)
     department_id = fields.Many2one('hospital.department', string='Department (optional)',
+                                    ondelete='set null',
                                     help='Leave blank to apply to all departments')
     active = fields.Boolean(default=True)

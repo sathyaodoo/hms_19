@@ -59,6 +59,7 @@ class HospitalOPAssessment(models.Model):
         compute='_compute_patient_info',
         store=True,
         readonly=False,
+        ondelete='set null',
     )
 
     # ── Header Numbers & Details ──────────────────────────────────────────────

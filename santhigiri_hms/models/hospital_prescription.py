@@ -30,6 +30,7 @@ class HospitalPrescription(models.Model):
     department_id = fields.Many2one(
         'hospital.department',
         string='Department',
+        ondelete='set null',
     )
     outpatient_id = fields.Many2one(
         'hospital.outpatient',
