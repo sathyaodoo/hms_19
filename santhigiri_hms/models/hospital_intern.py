@@ -44,7 +44,7 @@ class HospitalIntern(models.Model):
     email = fields.Char(string='Email')
 
     # Rotation & Supervisor
-    current_dept_id = fields.Many2one('hospital.department', string='Current Department')
+    current_dept_id = fields.Many2one('hospital.department', string='Current Department', ondelete='set null')
     rotation_start = fields.Date(string='Rotation Start Date')
     rotation_end = fields.Date(string='Rotation End Date')
     supervisor_hod_id = fields.Many2one('hr.employee', string='Supervisor / HOD')
@@ -249,7 +249,7 @@ class HospitalInternRotation(models.Model):
     _order = 'start_date'
 
     intern_id = fields.Many2one('hospital.intern', required=True, ondelete='cascade', index=True)
-    dept_id = fields.Many2one('hospital.department', string='Department', required=True)
+    dept_id = fields.Many2one('hospital.department', string='Department', ondelete='set null')
     start_date = fields.Date(string='Start Date', required=True)
     end_date = fields.Date(string='End Date', required=True)
     supervisor_id = fields.Many2one('hr.employee', string='Supervisor / HOD')
