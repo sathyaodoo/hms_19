@@ -311,6 +311,9 @@
                                 </group>
                             </group>
                         </page>
+                        <page string="Internal notes" invisible="1">
+                            <field name="notes"/>
+                        </page>
                     </notebook>
                 </sheet>
                 <chatter/>
