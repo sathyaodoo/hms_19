@@ -60,6 +60,7 @@ class HospitalOPReassessment(models.Model):
         related='outpatient_id.department_id',
         store=True,
         readonly=True,
+        ondelete='set null',
     )
 
     # ── Observations ──────────────────────────────────────────────────────────

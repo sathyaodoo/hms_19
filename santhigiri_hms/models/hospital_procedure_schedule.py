@@ -70,7 +70,7 @@ class HospitalProcedureSchedule(models.Model):
     patient_name = fields.Char(string='Patient Name', readonly=True)
     patient_gender = fields.Char(string='Gender', readonly=True)
     patient_age = fields.Char(string='Age', readonly=True)
-    department_id = fields.Many2one('hospital.department', string='Department')
+    department_id = fields.Many2one('hospital.department', string='Department', ondelete='set null')
     doctor_id = fields.Many2one('hr.employee', string='Doctor', domain=[('doctor', '=', True)])
     bed_id = fields.Many2one('hospital.bed', string='Bed')
     bed_no = fields.Char(string='Bed No.')
